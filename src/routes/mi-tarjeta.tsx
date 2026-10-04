@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png.asset.json";
+
 
 export const Route = createFileRoute("/mi-tarjeta")({
   head: () => ({
@@ -89,7 +89,7 @@ function MiTarjeta() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <div className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card">
         <img
-          src={logo.url}
+          src="/logo.jpg"
           alt="Logo Dulces del Rey Pirata"
           className="mx-auto h-24 w-24 object-contain"
         />

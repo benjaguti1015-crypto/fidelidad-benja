@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
-import logo from "@/assets/logo.png.asset.json";
 import { Terminos } from "@/components/Terminos";
 
 export const Route = createFileRoute("/registro")({
@@ -68,7 +67,7 @@ function Registro() {
         className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card"
       >
         <img
-          src={logo.url}
+          src="/logo.jpg"
           alt="Logo Dulces del Rey Pirata"
           className="mx-auto h-24 w-24 object-contain"
         />

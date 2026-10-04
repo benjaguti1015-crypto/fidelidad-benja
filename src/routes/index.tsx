@@ -5,7 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { EscanerQR } from "@/components/EscanerQR";
-import logo from "@/assets/logo.png.asset.json";
+
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -91,7 +91,7 @@ function Login() {
         onSubmit={enviar}
         className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card"
       >
-        <img src={logo.url} alt="Logo Dulces del Rey Pirata" className="mx-auto h-20 w-20" />
+        <img src="/logo.jpg" alt="Logo Dulces del Rey Pirata" className="mx-auto h-20 w-20" />
         <h1 className="mt-3 text-center text-lg text-primary">Panel del Capitán</h1>
         <p className="mt-1 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
           Solo administración
