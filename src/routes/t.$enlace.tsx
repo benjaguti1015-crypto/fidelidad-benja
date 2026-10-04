@@ -65,7 +65,7 @@ function VistaCliente() {
 
     setGuardandoCumple(true);
     const { error } = await supabase
-      .from("tarjetas") // Reemplazar por el nombre de tu tabla en Supabase
+      .from("clientes") // Reemplazar por el nombre de tu tabla en Supabase
       .update({ cumpleanos: fechaCumple })
       .eq("enlace_unico", enlace);
 
