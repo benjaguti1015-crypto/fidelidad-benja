@@ -286,7 +286,7 @@ function Panel() {
     <main className="min-h-screen bg-background px-4 py-8">
       <div className="mx-auto w-full max-w-sm">
         <header className="flex items-center gap-3">
-          <img src={logo.url} alt="Logo Dulces del Rey Pirata" className="h-12 w-12" />
+          <img src="/logo.jpg" alt="Logo Dulces del Rey Pirata" className="h-12 w-12" />
           <div className="flex-1">
             <h1 className="text-lg leading-tight text-primary">Panel del Capitán</h1>
             <p className="text-xs text-muted-foreground">Clientes y sellos</p>
