@@ -45,11 +45,14 @@ function Registro() {
       return;
     }
 
+    const cumpleanosFormato = cumpleanos 
+      ? cumpleanos.split('-').reverse().join('/') 
+      : null;
     setEnviando(true);
     const { data, error: err } = await supabase.rpc("registro_publico", {
       p_nombre: nombre.trim(),
       p_instagram: instagram.trim().replace(/^@/, ""),
-      p_cumpleanos: cumpleanos ? cumpleanos : null,
+      p_cumpleanos: cumpleanosFormato,
     });
     setEnviando(false);
 
