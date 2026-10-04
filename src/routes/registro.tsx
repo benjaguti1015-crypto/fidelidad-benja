@@ -10,7 +10,7 @@ export const Route = createFileRoute("/registro")({
       {
         name: "description",
         content:
-          "Regístrate con tu nombre y tu usuario de Instagram para recibir tu tarjeta de fidelidad pirata con 8 sellos.",
+          "Regístrate con tu nombre, tu usuario de Instagram y tu cumpleaños para recibir tu tarjeta de fidelidad pirata con 8 sellos.",
       },
       { property: "og:title", content: "Únete a la tripulación | Dulces del Rey Pirata" },
       {
@@ -28,6 +28,7 @@ function Registro() {
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [instagram, setInstagram] = useState("");
+  const [cumpleanos, setCumpleanos] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
 
@@ -48,6 +49,7 @@ function Registro() {
     const { data, error: err } = await supabase.rpc("registro_publico", {
       p_nombre: nombre.trim(),
       p_instagram: instagram.trim().replace(/^@/, ""),
+      p_cumpleanos: cumpleanos ? cumpleanos : null,
     });
     setEnviando(false);
 
@@ -58,7 +60,6 @@ function Registro() {
     localStorage.setItem("tarjeta_enlace", data as string);
     navigate({ to: "/t/$enlace", params: { enlace: data as string } });
   }
-
 
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
@@ -71,13 +72,14 @@ function Registro() {
           alt="Logo Dulces del Rey Pirata"
           className="mx-auto h-24 w-24 object-contain"
         />
-        <h1 className="mt-3 text-center text-xl leading-tight text-primary">
+        <h1 className="mt-3 text-center text-xl leading-tight text-primary font-bold">
           Únete a la tripulación
         </h1>
         <p className="mt-1 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
           Tu tarjeta de 8 sellos
         </p>
 
+        {/* NOMBRE Y APELLIDO */}
         <label className="mt-6 block text-sm font-semibold text-primary" htmlFor="nombre">
           Nombre y apellido
         </label>
@@ -91,6 +93,7 @@ function Registro() {
           className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
         />
 
+        {/* USUARIO DE INSTAGRAM */}
         <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="instagram">
           Usuario de Instagram
         </label>
@@ -103,6 +106,21 @@ function Registro() {
           placeholder="@tuusuario"
           className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
         />
+
+        {/* FECHA DE CUMPLEAÑOS */}
+        <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="cumpleanos">
+          🎂 Fecha de cumpleaños <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+        </label>
+        <input
+          id="cumpleanos"
+          type="date"
+          value={cumpleanos}
+          onChange={(e) => setCumpleanos(e.target.value)}
+          className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary text-sm"
+        />
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          Te regalaremos una sorpresa pirata en tu mes especial. 🎉
+        </p>
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
@@ -128,6 +146,5 @@ function Registro() {
         </p>
       </form>
     </main>
-
   );
 }

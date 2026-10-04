@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { CodigoQR, codigoQrDeInstagram } from "@/components/CodigoQR";
 
 const META = 8;
@@ -11,6 +12,8 @@ export function TarjetaFidelidad({
   sellos: number;
   instagram?: string | null;
 }) {
+  const [mensajeCopiado, setMensajeCopiado] = useState(false);
+
   const activos = Math.max(0, Math.min(META, sellos));
   const restantes = META - activos;
   const porcentaje = Math.min((activos / META) * 100, 100);
@@ -18,6 +21,27 @@ export function TarjetaFidelidad({
   const instagramUser = instagram ? instagram.replace(/^@/, "") : "dulces.delreypirata";
   const linkInstagram = "https://www.instagram.com/dulces.delreypirata/";
   const linkDirectoDM = `https://ig.me/m/${instagramUser}`;
+
+  // Lógica para compartir o copiar el enlace de referido
+  const handleCompartirReferido = () => {
+    const usuarioRef = instagram ? instagram.replace(/^@/, "") : nombre.toLowerCase().replace(/\s+/g, "");
+    const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://dulcesdelreypirata.com";
+    const urlReferido = `${baseUrl}/registro?ref=${encodeURIComponent(usuarioRef)}`;
+    
+    const textoMensaje = `🏴‍☠️ ¡Únete a la tripulación de Dulces del Rey Pirata! Usa mi enlace para registrarte, sigue la cuenta oficial de Instagram y ganaremos un sello gratis: ${urlReferido}`;
+
+    if (navigator.share) {
+      navigator.share({
+        title: "Dulces del Rey Pirata 🏴‍☠️",
+        text: textoMensaje,
+        url: urlReferido,
+      }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(textoMensaje);
+      setMensajeCopiado(true);
+      setTimeout(() => setMensajeCopiado(false), 3000);
+    }
+  };
 
   return (
     <article className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card flex flex-col items-center relative">
@@ -106,18 +130,36 @@ export function TarjetaFidelidad({
         </div>
       </div>
 
-      {/* 7. BOTÓN DE S.O.S. PEDIR GALLETAS DIRECTO A DM */}
+      {/* 7. MÓDULO DE REFERIDOS ("TRAE A UN PIRATA") */}
+      <div className="mt-5 w-full rounded-2xl border-2 border-dashed border-amber-500/60 bg-amber-500/5 p-3 text-center">
+        <p className="text-xs font-bold text-primary flex items-center justify-center gap-1">
+          <span>🎁</span> ¡Invita a un Pirata a la Tripulación!
+        </p>
+        <p className="mt-1 text-[10px] text-muted-foreground leading-tight">
+          Comparte tu enlace. Si tu amigo se registra y <strong className="text-primary font-bold">sigue a @dulces.delreypirata</strong> en Instagram, ¡ambos ganan 1 sello de regalo!
+        </p>
+        <button
+          type="button"
+          onClick={handleCompartirReferido}
+          className="mt-2.5 w-full rounded-xl bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/40 py-2 px-3 text-xs font-extrabold text-amber-900 transition-colors flex items-center justify-center gap-1.5"
+        >
+          <span>{mensajeCopiado ? "✅" : "🔗"}</span>
+          <span>{mensajeCopiado ? "¡Enlace de invitación copiado!" : "Invitar y ganar sello gratis"}</span>
+        </button>
+      </div>
+
+      {/* 8. BOTÓN DE S.O.S. PEDIR GALLETAS DIRECTO A DM */}
       <a
         href={linkDirectoDM}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-5 w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-caramel px-4 py-3 text-center font-extrabold text-primary shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] border-2 border-primary/40 animate-pulse"
+        className="mt-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-caramel px-4 py-3 text-center font-extrabold text-primary shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] border-2 border-primary/40 animate-pulse"
       >
         <span className="text-xl">🍪</span>
         <span>🚨 S.O.S. ¡Pedir galletas ahora!</span>
       </a>
 
-      {/* 8. CÓDIGO QR DE INSTAGRAM */}
+      {/* 9. CÓDIGO QR DE INSTAGRAM */}
       {instagram && (
         <div className="mt-6 flex flex-col items-center border-t border-primary/20 pt-4 w-full">
           <CodigoQR valor={codigoQrDeInstagram(instagram)} />
@@ -130,7 +172,7 @@ export function TarjetaFidelidad({
         </div>
       )}
 
-      {/* 9. ESTADO DEL TESORO */}
+      {/* 10. ESTADO DEL TESORO */}
       <footer className="mt-6 text-center text-sm text-muted-foreground">
         {restantes === 0 ? (
           <span className="font-bold text-primary">
