@@ -1,4 +1,3 @@
-import logo from "@/assets/logo.png.asset.json";
 import { CodigoQR, codigoQrDeInstagram } from "@/components/CodigoQR";
 
 const META = 8;
@@ -19,7 +18,7 @@ export function TarjetaFidelidad({
     <article className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card">
       <header className="flex flex-col items-center text-center">
         <img
-          src={logo.url}
+          src="/logo.jpg"
           alt="Logo Dulces del Rey Pirata"
           className="h-24 w-24 object-contain"
         />
