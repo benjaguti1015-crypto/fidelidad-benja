@@ -56,8 +56,11 @@ function VistaCliente() {
   useEffect(() => {
     if (data && !data.cumpleanos) {
       setMostrarModalCumple(true);
+    } else if (data && data.cumpleanos) {
+
+      setMostrarModalCumple(false);
     }
-  }, [data]);
+  }, [data?.cumpleanos]);
 
   // Guardar cumpleaños en Supabase con RPC segura
   const handleGuardarCumpleanos = async (e: React.FormEvent) => {
