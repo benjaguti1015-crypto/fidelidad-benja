@@ -131,7 +131,7 @@ function Registro() {
 
         <button
           type="submit"
-          disabled={enviando}
+          disabled={enviando || !nombre.trim() || !instagram.trim()}
           className="mt-4 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
           {enviando ? "Creando tarjeta…" : "Crear mi tarjeta"}
