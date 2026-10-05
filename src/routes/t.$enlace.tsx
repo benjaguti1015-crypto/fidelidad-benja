@@ -26,6 +26,7 @@ function VistaCliente() {
   const [mostrarModalCumple, setMostrarModalCumple] = useState(false);
   const [fechaCumple, setFechaCumple] = useState("");
   const [guardandoCumple, setGuardandoCumple] = useState(false);
+  const [errorCumple, setErrorCumple] = useState<string | null>(null);
 
   useEffect(() => {
     localStorage.setItem("tarjeta_enlace", enlace);
@@ -58,23 +59,32 @@ function VistaCliente() {
     }
   }, [data]);
 
-  // Guardar cumpleaños en Supabase
+  // Guardar cumpleaños en Supabase con RPC segura
   const handleGuardarCumpleanos = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!fechaCumple) return;
 
     setGuardandoCumple(true);
-    const { error } = await supabase
-      .from("clientes") // Reemplazar por el nombre de tu tabla en Supabase
-      .update({ cumpleanos: fechaCumple })
-      .eq("enlace_unico", enlace);
+    setErrorCumple(null);
+
+    // yyyy-mm-dd -> dd/mm/yyyy, mismo formato que usa /registro
+    const cumpleanosFormato = fechaCumple.split("-").reverse().join("/");
+
+    const { data: guardado, error } = await supabase.rpc("actualizar_cumpleanos_publico", {
+      p_enlace: enlace,
+      p_cumpleanos: cumpleanosFormato,
+    });
 
     setGuardandoCumple(false);
 
-    if (!error) {
-      setMostrarModalCumple(false);
-      refetch();
+    if (error || !guardado) {
+      setErrorCumple("No pudimos guardar tu fecha. Inténtalo de nuevo.");
+      return;
     }
+
+    setMostrarModalCumple(false);
+    setFechaCumple("");
+    await refetch();
   };
 
   const handleClickGuardar = async () => {
@@ -149,10 +159,14 @@ function VistaCliente() {
                 />
               </div>
 
+              {errorCumple && (
+                <p className="text-xs text-destructive text-center">{errorCumple}</p>
+              )}
+
               <button
                 type="submit"
                 disabled={guardandoCumple}
-                className="w-full rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-foreground shadow transition-opacity hover:opacity-90 text-sm"
+                className="w-full rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-foreground shadow transition-opacity hover:opacity-90 text-sm disabled:opacity-60"
               >
                 {guardandoCumple ? "Guardando..." : "¡Guardar mi fecha! 🏴‍☠️"}
               </button>
