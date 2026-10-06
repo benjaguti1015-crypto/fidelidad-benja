@@ -26,8 +26,9 @@ export function Terminos({ className = "" }: { className?: string }) {
           en Instagram.
         </li>
         <li>
-          Premios oficiales: 50% de descuento en tu próxima compra al completar el 4° sello, y 2
-          galletas premium gratis (Nutella o Red Velvet) al completar el 8° sello.
+          Premios oficiales: 50% de descuento en tu próxima compra al completar el 4° sello (con
+          un tope máximo de descuento de $10.000), y 2 galletas premium gratis (Nutella o Red
+          Velvet) al completar el 8° sello.
         </li>
         <li>Los premios se canjean en la próxima compra y están sujetos al stock del día.</li>
       </ul>

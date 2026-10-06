@@ -17,17 +17,14 @@ export function TarjetaFidelidad({
   const activos = Math.max(0, Math.min(META, sellos));
   const restantes = META - activos;
   const porcentaje = Math.min((activos / META) * 100, 100);
-
-  const instagramUser = instagram ? instagram.replace(/^@/, "") : "dulces.delreypirata";
   const linkInstagram = "https://www.instagram.com/dulces.delreypirata/";
-  const linkDirectoDM = `https://ig.me/m/${instagramUser}`;
 
   // Lógica para compartir o copiar el enlace de referido
   const handleCompartirReferido = () => {
     const usuarioRef = instagram ? instagram.replace(/^@/, "") : nombre.toLowerCase().replace(/\s+/g, "");
     const baseUrl = typeof window !== "undefined" ? window.location.origin : "https://dulcesdelreypirata.com";
     const urlReferido = `${baseUrl}/registro?ref=${encodeURIComponent(usuarioRef)}`;
-    
+
     const textoMensaje = `🏴‍☠️ ¡Únete a la tripulación de Dulces del Rey Pirata! Usa mi enlace para registrarte, sigue la cuenta oficial de Instagram y ganaremos un sello gratis: ${urlReferido}`;
 
     if (navigator.share) {
@@ -44,16 +41,16 @@ export function TarjetaFidelidad({
   };
 
   return (
-    <article className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card flex flex-col items-center relative">
-      
+    <article className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-5 shadow-card flex flex-col items-center relative">
+
       {/* 1. CABECERA CON LOGO */}
       <header className="flex flex-col items-center text-center">
         <img
           src="/logo.jpg"
           alt="Logo Dulces del Rey Pirata"
-          className="h-24 w-24 object-contain rounded-full border-2 border-primary/20 bg-cream p-1 shadow-sm"
+          className="h-20 w-20 object-contain rounded-full border-2 border-primary/20 bg-cream p-1 shadow-sm"
         />
-        <h1 className="mt-3 text-xl font-bold leading-tight text-primary">
+        <h1 className="mt-2 text-lg font-bold leading-tight text-primary">
           Dulces del Rey Pirata
         </h1>
         <p className="mt-1 text-xs uppercase tracking-[0.3em] text-muted-foreground">
@@ -62,7 +59,7 @@ export function TarjetaFidelidad({
       </header>
 
       {/* 2. AVISO INSTAGRAM */}
-      <div className="mt-5 w-full rounded-2xl border-2 border-gold bg-gold/15 px-4 py-3 text-center">
+      <div className="mt-3 w-full rounded-2xl border-2 border-gold bg-gold/15 px-3 py-2.5 text-center">
         <p className="text-[12px] font-extrabold uppercase leading-snug tracking-wide text-primary">
           Recuerda: para hacer válidos tus sellos debes seguir nuestro Instagram
         </p>
@@ -77,12 +74,25 @@ export function TarjetaFidelidad({
       </div>
 
       {/* 3. NOMBRE DEL PIRATA */}
-      <p className="mt-4 w-full rounded-xl border border-dashed border-primary/50 bg-secondary/50 px-4 py-2.5 text-center text-base font-semibold text-primary">
+      <p className="mt-3 w-full rounded-xl border border-dashed border-primary/50 bg-secondary/50 px-4 py-2 text-center text-base font-semibold text-primary">
         Pirata: <span className="font-bold">{nombre}</span>
       </p>
 
-      {/* 4. BARRA DE PROGRESO VISUAL ("EL CAMINO DEL TESORO") */}
-      <div className="mt-5 w-full space-y-1.5">
+      {/* 4. CÓDIGO QR DE INSTAGRAM — arriba para que se vea sin hacer scroll */}
+      {instagram && (
+        <div className="mt-3 flex flex-col items-center w-full">
+          <CodigoQR valor={codigoQrDeInstagram(instagram)} />
+          <p className="mt-1.5 text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
+            Muestra este QR para tu sello
+          </p>
+          <p className="text-[11px] font-semibold text-primary">
+            @{instagram.replace(/^@/, "")}
+          </p>
+        </div>
+      )}
+
+      {/* 5. BARRA DE PROGRESO VISUAL ("EL CAMINO DEL TESORO") */}
+      <div className="mt-4 w-full space-y-1.5">
         <div className="flex justify-between items-center text-[11px] font-bold text-primary px-1">
           <span>🏴‍☠️ Camino del Tesoro</span>
           <span>{activos} de {META} sellos ({porcentaje.toFixed(0)}%)</span>
@@ -95,8 +105,8 @@ export function TarjetaFidelidad({
         </div>
       </div>
 
-      {/* 5. CUADRÍCULA DE SELLOS CON EFECTO "MONEDA DE ORO" */}
-      <div className="mt-6 grid grid-cols-4 gap-3 w-full">
+      {/* 6. CUADRÍCULA DE SELLOS CON EFECTO "MONEDA DE ORO" */}
+      <div className="mt-4 grid grid-cols-4 gap-2 w-full">
         {Array.from({ length: META }).map((_, i) => {
           const numero = i + 1;
           const activo = i < activos;
@@ -105,7 +115,7 @@ export function TarjetaFidelidad({
             <div key={i} className="flex flex-col items-center">
               <div
                 aria-label={activo ? `Sello ${numero} marcado` : `Sello ${numero} pendiente`}
-                className={`w-14 h-14 rounded-full flex items-center justify-center font-extrabold text-lg border-2 transition-transform ${
+                className={`w-12 h-12 rounded-full flex items-center justify-center font-extrabold text-base border-2 transition-transform ${
                   activo
                     ? "bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-600 text-amber-950 border-yellow-200 shadow-[0_4px_12px_rgba(217,119,6,0.45),inset_0_2px_4px_rgba(255,255,255,0.7)] scale-105 animate-fade-in"
                     : "bg-cream text-primary/30 border-primary/30"
@@ -118,11 +128,13 @@ export function TarjetaFidelidad({
         })}
       </div>
 
-      {/* 6. ETIQUETAS DE PREMIOS INTEGRADAS Y LIMPIAS */}
-      <div className="mt-5 w-full space-y-2">
+      {/* 7. ETIQUETAS DE PREMIOS INTEGRADAS Y LIMPIAS */}
+      <div className="mt-4 w-full space-y-2">
         <div className="flex items-center justify-between rounded-xl bg-amber-500/10 border border-amber-500/30 px-3 py-2 text-xs">
           <span className="font-bold text-amber-800">⚓ Sello 4:</span>
-          <span className="font-semibold text-primary text-right">50% OFF en próxima compra</span>
+          <span className="font-semibold text-primary text-right">
+            50% OFF en próxima compra <span className="block text-[10px] font-medium text-muted-foreground">(tope $10.000)</span>
+          </span>
         </div>
         <div className="flex items-center justify-between rounded-xl bg-gold/20 border border-gold px-3 py-2 text-xs">
           <span className="font-bold text-primary">👑 Sello 8 (Meta):</span>
@@ -130,8 +142,8 @@ export function TarjetaFidelidad({
         </div>
       </div>
 
-      {/* 7. MÓDULO DE REFERIDOS ("TRAE A UN PIRATA") */}
-      <div className="mt-5 w-full rounded-2xl border-2 border-dashed border-amber-500/60 bg-amber-500/5 p-3 text-center">
+      {/* 8. MÓDULO DE REFERIDOS ("TRAE A UN PIRATA") */}
+      <div className="mt-4 w-full rounded-2xl border-2 border-dashed border-amber-500/60 bg-amber-500/5 p-3 text-center">
         <p className="text-xs font-bold text-primary flex items-center justify-center gap-1">
           <span>🎁</span> ¡Invita a un Pirata a la Tripulación!
         </p>
@@ -148,32 +160,19 @@ export function TarjetaFidelidad({
         </button>
       </div>
 
-      {/* 8. BOTÓN DE S.O.S. PEDIR GALLETAS DIRECTO A DM */}
+      {/* 9. BOTÓN DE S.O.S. PEDIR GALLETAS DIRECTO A DM */}
       <a
-        href={linkDirectoDM}
+        href={linkInstagram}
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-caramel px-4 py-3 text-center font-extrabold text-primary shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] border-2 border-primary/40 animate-pulse"
+        className="mt-3 w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-600 via-amber-500 to-caramel px-4 py-3 text-center font-extrabold text-primary shadow-lg transition-transform hover:scale-[1.02] active:scale-[0.98] border-2 border-primary/40 animate-pulse"
       >
         <span className="text-xl">🍪</span>
         <span>🚨 S.O.S. ¡Pedir galletas ahora!</span>
       </a>
 
-      {/* 9. CÓDIGO QR DE INSTAGRAM */}
-      {instagram && (
-        <div className="mt-6 flex flex-col items-center border-t border-primary/20 pt-4 w-full">
-          <CodigoQR valor={codigoQrDeInstagram(instagram)} />
-          <p className="mt-2 text-center text-[10px] uppercase tracking-[0.2em] text-muted-foreground">
-            Muestra este QR para tu sello
-          </p>
-          <p className="text-[11px] font-semibold text-primary">
-            @{instagram.replace(/^@/, "")}
-          </p>
-        </div>
-      )}
-
       {/* 10. ESTADO DEL TESORO */}
-      <footer className="mt-6 text-center text-sm text-muted-foreground">
+      <footer className="mt-4 text-center text-sm text-muted-foreground">
         {restantes === 0 ? (
           <span className="font-bold text-primary">
             ¡Tesoro completo! Reclama tu premio 🎉
