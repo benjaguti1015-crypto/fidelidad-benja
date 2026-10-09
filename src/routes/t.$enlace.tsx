@@ -40,7 +40,7 @@ function VistaCliente() {
     return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
   }, [enlace]);
 
-  const { data, isLoading, isError, refetch, isFetching } = useQuery({
+  const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["tarjeta", enlace],
     queryFn: async (): Promise<Tarjeta | null> => {
       const { data, error } = await supabase.rpc("tarjeta_publica", { p_enlace: enlace });
@@ -57,7 +57,6 @@ function VistaCliente() {
     if (data && !data.cumpleanos) {
       setMostrarModalCumple(true);
     } else if (data && data.cumpleanos) {
-
       setMostrarModalCumple(false);
     }
   }, [data?.cumpleanos]);
@@ -103,36 +102,30 @@ function VistaCliente() {
   return (
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10 relative">
       {isLoading ? (
-        <p className="text-muted-foreground animate-pulse font-medium">Cargando tu tarjeta pirata…</p>
+        <p className="text-muted-foreground animate-pulse font-medium">
+          Cargando tu tarjeta pirata…
+        </p>
       ) : isError || !data ? (
         <p className="max-w-xs text-center text-muted-foreground">
           No encontramos esta tarjeta. Pide a la tripulación un enlace válido.
         </p>
       ) : (
         <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-          <button
-            type="button"
-            onClick={handleClickGuardar}
-            className="w-full flex items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-amber-500 to-caramel px-4 py-3 text-center font-bold text-primary shadow-lg border-2 border-primary/40"
-          >
-            <span className="text-lg">🏴‍☠️</span>
-            <span>¡Haz clic acá para no perderme!</span>
-          </button>
-
           <TarjetaFidelidad
             nombre={data.nombre_completo}
             sellos={data.sellos_actuales}
             instagram={data.instagram}
           />
 
-          <Terminos className="w-full max-w-sm" />
-
           <button
-            onClick={() => refetch()}
-            className="w-full rounded-xl border-2 border-primary/50 bg-cream/30 py-2.5 text-sm font-semibold text-primary"
+            type="button"
+            onClick={handleClickGuardar}
+            className="text-sm font-semibold text-primary underline transition-transform active:scale-[0.97]"
           >
-            {isFetching ? "Actualizando…" : "🔄 Actualizar sellos"}
+            📲 Guardar mi tarjeta en el celular
           </button>
+
+          <Terminos className="w-full max-w-sm" />
         </div>
       )}
 
@@ -162,9 +155,7 @@ function VistaCliente() {
                 />
               </div>
 
-              {errorCumple && (
-                <p className="text-xs text-destructive text-center">{errorCumple}</p>
-              )}
+              {errorCumple && <p className="text-xs text-destructive text-center">{errorCumple}</p>}
 
               <button
                 type="submit"
@@ -172,6 +163,13 @@ function VistaCliente() {
                 className="w-full rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-foreground shadow transition-opacity hover:opacity-90 text-sm disabled:opacity-60"
               >
                 {guardandoCumple ? "Guardando..." : "¡Guardar mi fecha! 🏴‍☠️"}
+              </button>
+              <button
+                type="button"
+                onClick={() => setMostrarModalCumple(false)}
+                className="w-full text-center text-xs text-muted-foreground underline"
+              >
+                Ahora no
               </button>
             </form>
           </div>
@@ -190,8 +188,18 @@ function VistaCliente() {
               </p>
             </div>
             <div className="mt-4 space-y-2 text-xs bg-cream p-3 rounded-xl border border-primary/20">
-              <p>📱 <span className="font-semibold">Android (Chrome):</span> Toca los 3 puntos (⋮) y selecciona <span className="font-semibold text-primary">"Agregar a la pantalla principal"</span>.</p>
-              <p className="pt-2 border-t border-primary/10">🍏 <span className="font-semibold">iPhone (Safari):</span> Toca Compartir (⎋) y elige <span className="font-semibold text-primary">"Agregar al inicio"</span>.</p>
+              <p>
+                📱 <span className="font-semibold">Android (Chrome):</span> Toca los 3 puntos (⋮) y
+                selecciona{" "}
+                <span className="font-semibold text-primary">
+                  "Agregar a la pantalla principal"
+                </span>
+                .
+              </p>
+              <p className="pt-2 border-t border-primary/10">
+                🍏 <span className="font-semibold">iPhone (Safari):</span> Toca Compartir (⎋) y
+                elige <span className="font-semibold text-primary">"Agregar al inicio"</span>.
+              </p>
             </div>
             <button
               type="button"
