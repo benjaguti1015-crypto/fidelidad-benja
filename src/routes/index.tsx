@@ -5,7 +5,12 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { EscanerQR } from "@/components/EscanerQR";
-
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 export const Route = createFileRoute("/")({
   ssr: false,
@@ -89,7 +94,7 @@ function Login() {
     <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
       <form
         onSubmit={enviar}
-        className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card"
+        className="w-full max-w-sm rounded-3xl border border-primary/30 bg-card p-6 shadow-card"
       >
         <img src="/logo.jpg" alt="Logo Dulces del Rey Pirata" className="mx-auto h-20 w-20" />
         <h1 className="mt-3 text-center text-lg text-primary">Panel del Capitán</h1>
@@ -161,10 +166,7 @@ function Panel() {
 
   const eliminarCliente = useMutation({
     mutationFn: async (clienteId: string) => {
-      const { error: e1 } = await supabase
-        .from("fidelidad")
-        .delete()
-        .eq("cliente_id", clienteId);
+      const { error: e1 } = await supabase.from("fidelidad").delete().eq("cliente_id", clienteId);
       if (e1) throw e1;
       const { error: e2 } = await supabase.from("clientes").delete().eq("id", clienteId);
       if (e2) throw e2;
@@ -242,12 +244,9 @@ function Panel() {
     );
   }, [clientes, busqueda]);
 
-
   const crear = useMutation({
     mutationFn: async (nombre: string) => {
-      const { error } = await supabase
-        .from("clientes")
-        .insert({ nombre_completo: nombre.trim() });
+      const { error } = await supabase.from("clientes").insert({ nombre_completo: nombre.trim() });
       if (error) throw error;
     },
     onSuccess: () => {
@@ -270,9 +269,7 @@ function Panel() {
     },
     onSuccess: ({ clienteId, sellos }) => {
       qc.setQueryData<Cliente[]>(["clientes"], (old) =>
-        (old ?? []).map((c) =>
-          c.id === clienteId ? { ...c, sellos } : c,
-        ),
+        (old ?? []).map((c) => (c.id === clienteId ? { ...c, sellos } : c)),
       );
     },
     onError: (err) => {
@@ -281,23 +278,23 @@ function Panel() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
   });
 
-
   return (
-    <main className="min-h-screen bg-background px-4 py-8">
+    <main className="min-h-screen bg-background px-4 py-6">
       <div className="mx-auto w-full max-w-sm">
         <header className="flex items-center gap-3">
-          <img src="/logo.jpg" alt="Logo Dulces del Rey Pirata" className="h-12 w-12" />
-          <div className="flex-1">
-            <h1 className="text-lg leading-tight text-primary">Panel del Capitán</h1>
-            <p className="text-xs text-muted-foreground">Clientes y sellos</p>
-          </div>
+          <img
+            src="/logo.jpg"
+            alt="Logo Dulces del Rey Pirata"
+            className="h-10 w-10 rounded-full border border-primary/20"
+          />
+          <h1 className="flex-1 text-lg leading-tight text-primary">Panel del Capitán</h1>
           <button
             onClick={async () => {
               await qc.cancelQueries();
               qc.clear();
               await supabase.auth.signOut();
             }}
-            className="rounded-lg border-2 border-primary/50 px-3 py-1 text-xs font-semibold text-primary"
+            className="rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary"
           >
             Salir
           </button>
@@ -308,28 +305,13 @@ function Panel() {
             setErrorSellos(null);
             setEscaneando(true);
           }}
-          className="mt-4 w-full rounded-xl bg-caramel px-3 py-3 text-sm font-bold text-primary"
+          className="mt-4 w-full rounded-xl bg-caramel px-3 py-3.5 text-base font-bold text-primary transition-transform active:scale-[0.98]"
         >
           📷 Escanear QR
         </button>
 
-        <button
-          onClick={() =>
-            navigator.clipboard.writeText(`${window.location.origin}/registro`)
-          }
-          className="mt-3 w-full rounded-xl border-2 border-primary/50 px-3 py-2 text-xs font-semibold text-primary"
-        >
-          Copiar enlace de registro para clientes
-        </button>
-
-        <div className="mt-4 rounded-2xl border-2 border-primary/60 bg-card p-4 shadow-card">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-primary">Acumulación de sellos</p>
-              <p className="text-xs text-muted-foreground">
-                {acumulacionActiva ? "Activada" : "Pausada"}
-              </p>
-            </div>
+        <div className="mt-3 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
             <button
               type="button"
               role="switch"
@@ -337,65 +319,77 @@ function Panel() {
               aria-label="Activar o desactivar la acumulación de sellos"
               disabled={cambiarAcumulacion.isPending}
               onClick={() => cambiarAcumulacion.mutate(!acumulacionActiva)}
-              className={`relative h-8 w-14 shrink-0 rounded-full border-2 border-primary transition-colors disabled:opacity-60 ${
+              className={`relative h-8 w-14 shrink-0 rounded-full border border-primary/60 transition-colors disabled:opacity-60 ${
                 acumulacionActiva ? "bg-caramel" : "bg-cream"
               }`}
             >
               <span
-                className={`absolute top-0.5 h-6 w-6 rounded-full bg-primary transition-all ${
-                  acumulacionActiva ? "left-[26px]" : "left-0.5"
+                className={`absolute left-0.5 top-0.5 h-6 w-6 rounded-full bg-primary transition-transform ${
+                  acumulacionActiva ? "translate-x-6" : ""
                 }`}
               />
             </button>
+            <span className="text-sm font-semibold text-primary">
+              {acumulacionActiva ? "Sumando sellos" : "Pausado"}
+            </span>
           </div>
-
-          {!acumulacionActiva && (
-            <p className="mt-3 rounded-xl border-2 border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">
-              ⚠️ Acumulación pausada por falta de stock temporal. No se pueden sumar sellos
-              nuevos.
-            </p>
-          )}
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(`${window.location.origin}/registro`);
+              setCopiado("registro");
+              setTimeout(() => setCopiado(null), 1500);
+            }}
+            className="text-xs font-semibold text-primary underline"
+          >
+            {copiado === "registro" ? "¡Copiado!" : "Copiar enlace de registro"}
+          </button>
         </div>
 
+        {!acumulacionActiva && (
+          <p className="mt-3 rounded-xl border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">
+            ⚠️ Acumulación pausada por falta de stock. No se pueden sumar sellos.
+          </p>
+        )}
 
-
-        <form
-
-          onSubmit={(e) => {
-            e.preventDefault();
-            if (nuevo.trim()) crear.mutate(nuevo);
-          }}
-          className="mt-6 rounded-2xl border-2 border-primary/60 bg-card p-4 shadow-card"
-        >
-          <label htmlFor="nuevo" className="text-sm font-semibold text-primary">
-            Nuevo cliente
-          </label>
-          <input
-            id="nuevo"
-            value={nuevo}
-            maxLength={80}
-            placeholder="Nombre completo"
-            onChange={(e) => setNuevo(e.target.value)}
-            className="mt-2 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
-          />
-          <button
-            type="submit"
-            disabled={crear.isPending}
-            className="mt-3 w-full rounded-xl bg-primary px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
+        <details className="mt-4 rounded-2xl border border-primary/30 bg-card px-4 py-3">
+          <summary className="cursor-pointer text-sm font-semibold text-primary">
+            ＋ Nuevo cliente
+          </summary>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (nuevo.trim()) crear.mutate(nuevo);
+            }}
+            className="mt-3"
           >
-            Registrar
-          </button>
-        </form>
+            <input
+              id="nuevo"
+              aria-label="Nombre completo"
+              value={nuevo}
+              maxLength={80}
+              placeholder="Nombre completo"
+              onChange={(e) => setNuevo(e.target.value)}
+              className="w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary"
+            />
+            <button
+              type="submit"
+              disabled={crear.isPending}
+              className="mt-3 w-full rounded-xl bg-primary px-4 py-2.5 font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
+            >
+              Registrar
+            </button>
+          </form>
+        </details>
 
         <input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
           placeholder="Buscar por nombre o @Instagram…"
-          className="mt-6 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
+          className="mt-4 w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary"
         />
 
         {errorSellos && (
-          <p className="mt-4 rounded-xl border-2 border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
+          <p className="mt-4 rounded-xl border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {errorSellos}
           </p>
         )}
@@ -408,33 +402,66 @@ function Panel() {
           {filtrados.map((c) => {
             const sellos = c.sellos;
             return (
-              <div
-                key={c.id}
-                className="rounded-2xl border-2 border-primary/60 bg-card p-4 shadow-card"
-              >
-                <p className="font-semibold text-primary">Pirata: {c.nombre_completo}</p>
-                {c.instagram && (
-                  <p className="mt-0.5 text-xs text-muted-foreground">
-                    {`@${c.instagram.replace(/^@/, "")}`}
-                  </p>
-                )}
-                <p className="mt-1 text-sm text-muted-foreground">
-                  {sellos} de 8 sellos
-                  {sellos === 8 && (
-                    <span className="ml-2 font-semibold text-primary">· ¡Tesoro completo!</span>
-                  )}
-                </p>
-                <div className="mt-2 flex gap-1.5" aria-hidden>
-                  {Array.from({ length: 8 }).map((_, i) => (
-                    <span
-                      key={i}
-                      className={`h-3 w-3 rounded-full border-2 border-primary ${
-                        i < sellos ? "bg-caramel" : "bg-cream"
-                      }`}
-                    />
-                  ))}
+              <div key={c.id} className="rounded-2xl border border-primary/30 bg-card p-4">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0">
+                    <p className="truncate font-semibold text-primary">{c.nombre_completo}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {c.instagram && `@${c.instagram.replace(/^@/, "")}`}
+                      {copiado === c.id && (
+                        <span className="font-semibold text-primary"> · ¡Enlace copiado!</span>
+                      )}
+                    </p>
+                  </div>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        aria-label={`Más opciones de ${c.nombre_completo}`}
+                        className="-mr-2 -mt-1 h-10 w-10 shrink-0 rounded-full text-xl font-bold text-primary"
+                      >
+                        ⋯
+                      </button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem
+                        onSelect={() => {
+                          navigator.clipboard.writeText(
+                            `${window.location.origin}/t/${c.enlace_unico}`,
+                          );
+                          setCopiado(c.id);
+                          setTimeout(() => setCopiado(null), 1500);
+                        }}
+                      >
+                        Copiar enlace
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onSelect={() => setVerTarjeta(c)}>
+                        Ver tarjeta
+                      </DropdownMenuItem>
+                      <DropdownMenuItem
+                        onSelect={() => setEliminar(c)}
+                        className="text-destructive focus:text-destructive"
+                      >
+                        Eliminar
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </div>
 
+                <div className="mt-1 flex items-center gap-2">
+                  <div className="flex gap-1.5" aria-hidden>
+                    {Array.from({ length: 8 }).map((_, i) => (
+                      <span
+                        key={i}
+                        className={`h-3 w-3 rounded-full border border-primary/60 ${
+                          i < sellos ? "bg-caramel" : "bg-cream"
+                        }`}
+                      />
+                    ))}
+                  </div>
+                  <span className="text-sm text-muted-foreground">
+                    {sellos} de 8{sellos === 8 && " · ¡Tesoro completo!"}
+                  </span>
+                </div>
 
                 <div className="mt-3 flex items-center gap-2">
                   <button
@@ -446,7 +473,8 @@ function Panel() {
                       })
                     }
                     disabled={sellos === 0}
-                    className="h-10 w-10 rounded-full border-2 border-primary text-lg font-bold text-primary disabled:opacity-40"
+                    aria-label="Quitar un sello"
+                    className="h-11 w-11 rounded-full border border-primary text-lg font-bold text-primary transition-transform active:scale-[0.95] disabled:opacity-40"
                   >
                     −
                   </button>
@@ -459,38 +487,9 @@ function Panel() {
                       })
                     }
                     disabled={sellos === 8 || !acumulacionActiva}
-                    className="h-10 flex-1 rounded-full bg-caramel font-semibold text-primary disabled:opacity-40"
+                    className="h-11 flex-1 rounded-full bg-caramel font-semibold text-primary transition-transform active:scale-[0.98] disabled:opacity-40"
                   >
                     {acumulacionActiva ? "Sumar sello" : "Pausado"}
-
-                  </button>
-                </div>
-
-                <div className="mt-3 flex gap-2">
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(
-                        `${window.location.origin}/t/${c.enlace_unico}`,
-                      );
-                      setCopiado(c.id);
-                      setTimeout(() => setCopiado(null), 1500);
-                    }}
-                    className="flex-1 rounded-lg border-2 border-primary/50 px-3 py-2 text-xs font-semibold text-primary"
-                  >
-                    {copiado === c.id ? "¡Copiado!" : "Copiar enlace"}
-                  </button>
-                  <button
-                    onClick={() => setVerTarjeta(c)}
-                    className="flex-1 rounded-lg border-2 border-primary/50 px-3 py-2 text-xs font-semibold text-primary"
-                  >
-                    Ver tarjeta
-                  </button>
-                  <button
-                    onClick={() => setEliminar(c)}
-                    aria-label={`Eliminar tarjeta de ${c.nombre_completo}`}
-                    className="rounded-lg border-2 border-destructive/50 px-3 py-2 text-xs font-semibold text-destructive"
-                  >
-                    Eliminar
                   </button>
                 </div>
               </div>
@@ -534,9 +533,7 @@ function Panel() {
             <TarjetaFidelidad
               nombre={verTarjeta.nombre_completo}
               instagram={verTarjeta.instagram}
-              sellos={
-                clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0
-              }
+              sellos={clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0}
             />
             <button
               onClick={() => setVerTarjeta(null)}
@@ -555,11 +552,9 @@ function Panel() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card"
+            className="w-full max-w-xs rounded-3xl border border-primary/30 bg-card p-6 shadow-card"
           >
-            <p className="text-center text-lg font-semibold text-primary">
-              ¿Confirmar sello?
-            </p>
+            <p className="text-center text-lg font-semibold text-primary">¿Confirmar sello?</p>
             <p className="mt-2 text-center text-sm text-muted-foreground">
               Vas a {confirmar.accion === "sumar" ? "agregar" : "quitar"} un sello a
             </p>
@@ -602,17 +597,13 @@ function Panel() {
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs rounded-3xl border-2 border-destructive/70 bg-card p-6 shadow-card"
+            className="w-full max-w-xs rounded-3xl border border-destructive/50 bg-card p-6 shadow-card"
           >
-            <p className="text-center text-lg font-semibold text-destructive">
-              ¿Eliminar tarjeta?
-            </p>
+            <p className="text-center text-lg font-semibold text-destructive">¿Eliminar tarjeta?</p>
             <p className="mt-2 text-center text-sm text-muted-foreground">
               Se eliminará permanentemente la tarjeta de
             </p>
-            <p className="text-center font-bold text-primary">
-              Pirata: {eliminar.nombre_completo}
-            </p>
+            <p className="text-center font-bold text-primary">Pirata: {eliminar.nombre_completo}</p>
             <p className="mt-2 text-center text-xs text-muted-foreground">
               Perderá sus {eliminar.sellos} sellos y su enlace dejará de funcionar.
             </p>
