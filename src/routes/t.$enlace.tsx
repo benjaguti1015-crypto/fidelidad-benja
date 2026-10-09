@@ -17,6 +17,16 @@ type Tarjeta = {
   enlace_unico?: string;
 };
 
+// Acepta dd/mm/aaaa (formato del registro) y aaaa-mm-dd.
+function esHoyCumpleanos(fecha?: string | null) {
+  const m =
+    fecha?.match(/^(\d{1,2})\/(\d{1,2})\/\d{4}$/) ?? fecha?.match(/^\d{4}-(\d{2})-(\d{2})$/);
+  if (!m || !fecha) return false;
+  const [dia, mes] = fecha.includes("/") ? [+m[1]!, +m[2]!] : [+m[2]!, +m[1]!];
+  const hoy = new Date();
+  return dia === hoy.getDate() && mes === hoy.getMonth() + 1;
+}
+
 function VistaCliente() {
   const { enlace } = Route.useParams();
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
@@ -111,6 +121,13 @@ function VistaCliente() {
         </p>
       ) : (
         <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+          {esHoyCumpleanos(data.cumpleanos) && (
+            <p className="w-full rounded-2xl border border-gold bg-gold/20 px-4 py-3 text-center text-sm font-semibold text-primary animate-fade-in">
+              🎂 ¡Feliz cumpleaños, {data.nombre_completo.split(" ")[0]}! Repostéanos y consigue tu
+              galleta gratis.
+            </p>
+          )}
+
           <TarjetaFidelidad
             nombre={data.nombre_completo}
             sellos={data.sellos_actuales}
