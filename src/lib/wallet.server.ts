@@ -46,7 +46,7 @@ async function tokenApi(cfg: Config) {
       assertion,
     }),
   });
-  if (!resp.ok) throw new Error(`Token de Google: ${resp.status}`);
+  if (!resp.ok) throw new Error(`Token de Google: ${resp.status} ${await resp.text()}`);
   return ((await resp.json()) as { access_token: string }).access_token;
 }
 
@@ -128,7 +128,9 @@ export async function actualizarPase(cfg: Config, enlace: string, t: TarjetaWall
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
     body: JSON.stringify(datosPase(t)),
   });
-  if (!resp.ok && resp.status !== 404) throw new Error(`Pase de Wallet: ${resp.status}`);
+  if (!resp.ok && resp.status !== 404) {
+    throw new Error(`Pase de Wallet: ${resp.status} ${await resp.text()}`);
+  }
   return resp.status !== 404;
 }
 

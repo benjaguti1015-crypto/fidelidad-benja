@@ -35,7 +35,9 @@ export const Route = createFileRoute("/api/wallet-sync")({
         try {
           const tarjeta = await leerTarjeta(enlace);
           if (!tarjeta) return json({ actualizado: false });
-          return json({ actualizado: await actualizarPase(cfg, enlace, tarjeta) });
+          const actualizado = await actualizarPase(cfg, enlace, tarjeta);
+          console.log(`wallet-sync: ${tarjeta.sellos_actuales} sellos, actualizado=${actualizado}`);
+          return json({ actualizado, sellos: tarjeta.sellos_actuales });
         } catch (e) {
           console.error(e);
           return json({ error: "No se pudo actualizar el pase." }, 500);
