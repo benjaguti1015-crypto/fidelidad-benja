@@ -8,7 +8,7 @@ import { Terminos } from "@/components/Terminos";
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
     meta: [
-      { name: "theme-color", content: "#1c1410" },
+      { name: "theme-color", content: "#160d07" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Rey Pirata" },
     ],

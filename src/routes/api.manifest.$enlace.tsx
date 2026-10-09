@@ -16,8 +16,8 @@ export const Route = createFileRoute("/api/manifest/$enlace")({
           start_url: `/t/${params.enlace}`,
           scope: "/t/",
           display: "standalone",
-          background_color: "#1c1410",
-          theme_color: "#1c1410",
+          background_color: "#160d07",
+          theme_color: "#160d07",
           icons: [
             { src: "/icon-192.png", sizes: "192x192", type: "image/png", purpose: "any" },
             { src: "/icon-512.png", sizes: "512x512", type: "image/png", purpose: "any" },
