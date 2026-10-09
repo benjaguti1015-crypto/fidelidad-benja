@@ -5,6 +5,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { EscanerQR } from "@/components/EscanerQR";
+import { EnviarAviso } from "@/components/EnviarAviso";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -380,6 +381,8 @@ function Panel() {
             </button>
           </form>
         </details>
+
+        <EnviarAviso />
 
         <input
           value={busqueda}

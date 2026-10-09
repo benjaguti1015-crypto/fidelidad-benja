@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { Terminos } from "@/components/Terminos";
+import { ActivarAvisos } from "@/components/ActivarAvisos";
 
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
@@ -212,6 +213,8 @@ function VistaCliente() {
               📲 Guardar mi tarjeta en el celular
             </button>
           )}
+
+          <ActivarAvisos enlace={enlace} ios={entorno.ios} instalada={instalada} />
 
           <Terminos className="w-full max-w-sm" />
         </div>

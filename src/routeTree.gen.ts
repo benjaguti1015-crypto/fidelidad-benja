@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MiTarjetaRouteImport } from './routes/mi-tarjeta'
 import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as ApiEnviarAvisoRouteImport } from './routes/api.enviar-aviso'
 import { Route as TEnlaceRouteImport } from './routes/t.$enlace'
 import { Route as ApiManifestEnlaceRouteImport } from './routes/api.manifest.$enlace'
 
@@ -30,6 +31,11 @@ const RegistroRoute = RegistroRouteImport.update({
   path: '/registro',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiEnviarAvisoRoute = ApiEnviarAvisoRouteImport.update({
+  id: '/api/enviar-aviso',
+  path: '/api/enviar-aviso',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TEnlaceRoute = TEnlaceRouteImport.update({
   id: '/t/$enlace',
   path: '/t/$enlace',
@@ -45,6 +51,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
+  '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
@@ -52,6 +59,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
+  '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
@@ -60,20 +68,33 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
+  '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace' | '/api/manifest/$enlace'
+    | '/'
+    | '/mi-tarjeta'
+    | '/registro'
+    | '/api/enviar-aviso'
+    | '/t/$enlace'
+    | '/api/manifest/$enlace'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace' | '/api/manifest/$enlace'
+  to:
+    | '/'
+    | '/mi-tarjeta'
+    | '/registro'
+    | '/api/enviar-aviso'
+    | '/t/$enlace'
+    | '/api/manifest/$enlace'
   id:
     | '__root__'
     | '/'
     | '/mi-tarjeta'
     | '/registro'
+    | '/api/enviar-aviso'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
   fileRoutesById: FileRoutesById
@@ -82,6 +103,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MiTarjetaRoute: typeof MiTarjetaRoute
   RegistroRoute: typeof RegistroRoute
+  ApiEnviarAvisoRoute: typeof ApiEnviarAvisoRoute
   TEnlaceRoute: typeof TEnlaceRoute
   ApiManifestEnlaceRoute: typeof ApiManifestEnlaceRoute
 }
@@ -109,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof RegistroRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/enviar-aviso': {
+      id: '/api/enviar-aviso'
+      path: '/api/enviar-aviso'
+      fullPath: '/api/enviar-aviso'
+      preLoaderRoute: typeof ApiEnviarAvisoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/t/$enlace': {
       id: '/t/$enlace'
       path: '/t/$enlace'
@@ -130,6 +159,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MiTarjetaRoute: MiTarjetaRoute,
   RegistroRoute: RegistroRoute,
+  ApiEnviarAvisoRoute: ApiEnviarAvisoRoute,
   TEnlaceRoute: TEnlaceRoute,
   ApiManifestEnlaceRoute: ApiManifestEnlaceRoute,
 }
