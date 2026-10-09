@@ -68,7 +68,6 @@ function Admin() {
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [modo, setModo] = useState<"entrar" | "crear">("entrar");
   const [mensaje, setMensaje] = useState<string | null>(null);
   const [cargando, setCargando] = useState(false);
 
@@ -76,18 +75,8 @@ function Login() {
     e.preventDefault();
     setMensaje(null);
     setCargando(true);
-    if (modo === "entrar") {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      if (error) setMensaje(error.message);
-    } else {
-      const { data, error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: window.location.origin },
-      });
-      if (error) setMensaje(error.message);
-      else if (!data.session) setMensaje("Revisa tu correo para confirmar la cuenta.");
-    }
+    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error) setMensaje(error.message);
     setCargando(false);
   }
 
@@ -135,15 +124,7 @@ function Login() {
           disabled={cargando}
           className="mt-6 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
         >
-          {modo === "entrar" ? "Entrar" : "Crear cuenta"}
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setModo(modo === "entrar" ? "crear" : "entrar")}
-          className="mt-3 w-full text-center text-sm text-muted-foreground underline"
-        >
-          {modo === "entrar" ? "Crear cuenta de administrador" : "Ya tengo cuenta"}
+          Entrar
         </button>
       </form>
     </main>
