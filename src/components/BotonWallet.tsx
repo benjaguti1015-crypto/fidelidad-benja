@@ -6,7 +6,8 @@ export function BotonWallet({ enlace }: { enlace: string }) {
   const [estado, setEstado] = useState<"listo" | "cargando" | "error">("listo");
 
   useEffect(() => setAndroid(/Android/i.test(navigator.userAgent)), []);
-  if (!android) return null;
+  // Oculto hasta que Google apruebe la publicación: activar con VITE_WALLET_VISIBLE=1 en Vercel.
+  if (!android || import.meta.env["VITE_WALLET_VISIBLE"] !== "1") return null;
 
   async function abrir() {
     setEstado("cargando");
