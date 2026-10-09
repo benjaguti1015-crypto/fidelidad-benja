@@ -5,6 +5,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { Terminos } from "@/components/Terminos";
 import { ActivarAvisos } from "@/components/ActivarAvisos";
+import { BotonWallet } from "@/components/BotonWallet";
 
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
@@ -215,6 +216,7 @@ function VistaCliente() {
           )}
 
           <ActivarAvisos enlace={enlace} ios={entorno.ios} instalada={instalada} />
+          <BotonWallet enlace={enlace} />
 
           <Terminos className="w-full max-w-sm" />
         </div>

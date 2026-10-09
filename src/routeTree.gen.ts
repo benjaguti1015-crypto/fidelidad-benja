@@ -13,8 +13,10 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MiTarjetaRouteImport } from './routes/mi-tarjeta'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as ApiEnviarAvisoRouteImport } from './routes/api.enviar-aviso'
+import { Route as ApiWalletSyncRouteImport } from './routes/api.wallet-sync'
 import { Route as TEnlaceRouteImport } from './routes/t.$enlace'
 import { Route as ApiManifestEnlaceRouteImport } from './routes/api.manifest.$enlace'
+import { Route as ApiWalletEnlaceRouteImport } from './routes/api.wallet.$enlace'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -36,6 +38,11 @@ const ApiEnviarAvisoRoute = ApiEnviarAvisoRouteImport.update({
   path: '/api/enviar-aviso',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWalletSyncRoute = ApiWalletSyncRouteImport.update({
+  id: '/api/wallet-sync',
+  path: '/api/wallet-sync',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TEnlaceRoute = TEnlaceRouteImport.update({
   id: '/t/$enlace',
   path: '/t/$enlace',
@@ -46,22 +53,31 @@ const ApiManifestEnlaceRoute = ApiManifestEnlaceRouteImport.update({
   path: '/api/manifest/$enlace',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiWalletEnlaceRoute = ApiWalletEnlaceRouteImport.update({
+  id: '/api/wallet/$enlace',
+  path: '/api/wallet/$enlace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
+  '/api/wallet/$enlace': typeof ApiWalletEnlaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
+  '/api/wallet/$enlace': typeof ApiWalletEnlaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -69,8 +85,10 @@ export interface FileRoutesById {
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
+  '/api/wallet/$enlace': typeof ApiWalletEnlaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -79,24 +97,30 @@ export interface FileRouteTypes {
     | '/mi-tarjeta'
     | '/registro'
     | '/api/enviar-aviso'
+    | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
+    | '/api/wallet/$enlace'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/mi-tarjeta'
     | '/registro'
     | '/api/enviar-aviso'
+    | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
+    | '/api/wallet/$enlace'
   id:
     | '__root__'
     | '/'
     | '/mi-tarjeta'
     | '/registro'
     | '/api/enviar-aviso'
+    | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
+    | '/api/wallet/$enlace'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -104,8 +128,10 @@ export interface RootRouteChildren {
   MiTarjetaRoute: typeof MiTarjetaRoute
   RegistroRoute: typeof RegistroRoute
   ApiEnviarAvisoRoute: typeof ApiEnviarAvisoRoute
+  ApiWalletSyncRoute: typeof ApiWalletSyncRoute
   TEnlaceRoute: typeof TEnlaceRoute
   ApiManifestEnlaceRoute: typeof ApiManifestEnlaceRoute
+  ApiWalletEnlaceRoute: typeof ApiWalletEnlaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -138,6 +164,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiEnviarAvisoRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wallet-sync': {
+      id: '/api/wallet-sync'
+      path: '/api/wallet-sync'
+      fullPath: '/api/wallet-sync'
+      preLoaderRoute: typeof ApiWalletSyncRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/t/$enlace': {
       id: '/t/$enlace'
       path: '/t/$enlace'
@@ -152,6 +185,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiManifestEnlaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/wallet/$enlace': {
+      id: '/api/wallet/$enlace'
+      path: '/api/wallet/$enlace'
+      fullPath: '/api/wallet/$enlace'
+      preLoaderRoute: typeof ApiWalletEnlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -160,8 +200,10 @@ const rootRouteChildren: RootRouteChildren = {
   MiTarjetaRoute: MiTarjetaRoute,
   RegistroRoute: RegistroRoute,
   ApiEnviarAvisoRoute: ApiEnviarAvisoRoute,
+  ApiWalletSyncRoute: ApiWalletSyncRoute,
   TEnlaceRoute: TEnlaceRoute,
   ApiManifestEnlaceRoute: ApiManifestEnlaceRoute,
+  ApiWalletEnlaceRoute: ApiWalletEnlaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

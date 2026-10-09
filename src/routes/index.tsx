@@ -250,6 +250,20 @@ function Panel() {
       setErrorSellos(null);
     },
     onSuccess: ({ clienteId, sellos }) => {
+      // Actualiza el pase de Google Wallet (si el cliente lo guardó); no bloquea el panel.
+      const enlace = clientes.find((c) => c.id === clienteId)?.enlace_unico;
+      if (enlace) {
+        supabase.auth.getSession().then(({ data }) =>
+          fetch("/api/wallet-sync", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              authorization: `Bearer ${data.session?.access_token ?? ""}`,
+            },
+            body: JSON.stringify({ enlace }),
+          }).catch(() => {}),
+        );
+      }
       qc.setQueryData<Cliente[]>(["clientes"], (old) =>
         (old ?? []).map((c) => (c.id === clienteId ? { ...c, sellos } : c)),
       );
