@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MiTarjetaRouteImport } from './routes/mi-tarjeta'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as TEnlaceRouteImport } from './routes/t.$enlace'
+import { Route as ApiManifestEnlaceRouteImport } from './routes/api.manifest.$enlace'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -34,18 +35,25 @@ const TEnlaceRoute = TEnlaceRouteImport.update({
   path: '/t/$enlace',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ApiManifestEnlaceRoute = ApiManifestEnlaceRouteImport.update({
+  id: '/api/manifest/$enlace',
+  path: '/api/manifest/$enlace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/t/$enlace': typeof TEnlaceRoute
+  '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/t/$enlace': typeof TEnlaceRoute
+  '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,21 @@ export interface FileRoutesById {
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/registro': typeof RegistroRoute
   '/t/$enlace': typeof TEnlaceRoute
+  '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace'
+  fullPaths:
+    '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace' | '/api/manifest/$enlace'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace'
-  id: '__root__' | '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace'
+  to: '/' | '/mi-tarjeta' | '/registro' | '/t/$enlace' | '/api/manifest/$enlace'
+  id:
+    | '__root__'
+    | '/'
+    | '/mi-tarjeta'
+    | '/registro'
+    | '/t/$enlace'
+    | '/api/manifest/$enlace'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,6 +83,7 @@ export interface RootRouteChildren {
   MiTarjetaRoute: typeof MiTarjetaRoute
   RegistroRoute: typeof RegistroRoute
   TEnlaceRoute: typeof TEnlaceRoute
+  ApiManifestEnlaceRoute: typeof ApiManifestEnlaceRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -99,6 +116,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TEnlaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/api/manifest/$enlace': {
+      id: '/api/manifest/$enlace'
+      path: '/api/manifest/$enlace'
+      fullPath: '/api/manifest/$enlace'
+      preLoaderRoute: typeof ApiManifestEnlaceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -107,6 +131,7 @@ const rootRouteChildren: RootRouteChildren = {
   MiTarjetaRoute: MiTarjetaRoute,
   RegistroRoute: RegistroRoute,
   TEnlaceRoute: TEnlaceRoute,
+  ApiManifestEnlaceRoute: ApiManifestEnlaceRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

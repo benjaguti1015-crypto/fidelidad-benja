@@ -59,6 +59,7 @@ function Registro() {
       return;
     }
     localStorage.setItem("tarjeta_enlace", data as string);
+    sessionStorage.setItem("recien_registrado", "1");
     navigate({ to: "/t/$enlace", params: { enlace: data as string } });
   }
 

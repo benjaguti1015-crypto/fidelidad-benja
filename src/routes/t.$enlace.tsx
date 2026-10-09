@@ -6,8 +6,24 @@ import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { Terminos } from "@/components/Terminos";
 
 export const Route = createFileRoute("/t/$enlace")({
+  head: ({ params }) => ({
+    meta: [
+      { name: "theme-color", content: "#f7efe1" },
+      { name: "apple-mobile-web-app-capable", content: "yes" },
+      { name: "apple-mobile-web-app-title", content: "Rey Pirata" },
+    ],
+    links: [
+      { rel: "manifest", href: `/api/manifest/${params.enlace}` },
+      { rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
+    ],
+  }),
   component: VistaCliente,
 });
+
+type PromptInstalar = Event & {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: string }>;
+};
 
 type Tarjeta = {
   nombre_completo: string;
@@ -29,8 +45,12 @@ function esHoyCumpleanos(fecha?: string | null) {
 
 function VistaCliente() {
   const { enlace } = Route.useParams();
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [deferredPrompt, setDeferredPrompt] = useState<PromptInstalar | null>(null);
   const [mostrarAyudaInstalacion, setMostrarAyudaInstalacion] = useState(false);
+  const [instalada, setInstalada] = useState(false);
+  const [recien, setRecien] = useState(false);
+  const [copiado, setCopiado] = useState(false);
+  const [entorno, setEntorno] = useState({ ios: false, enApp: false });
 
   // Estados para el Modal de Cumpleaños
   const [mostrarModalCumple, setMostrarModalCumple] = useState(false);
@@ -41,13 +61,26 @@ function VistaCliente() {
   useEffect(() => {
     localStorage.setItem("tarjeta_enlace", enlace);
 
+    const ua = navigator.userAgent;
+    setEntorno({ ios: /iPhone|iPad|iPod/i.test(ua), enApp: /Instagram|FBAN|FBAV/i.test(ua) });
+    setInstalada(
+      window.matchMedia("(display-mode: standalone)").matches ||
+        (navigator as { standalone?: boolean }).standalone === true,
+    );
+    setRecien(sessionStorage.getItem("recien_registrado") === "1");
+
     const handleBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
-      setDeferredPrompt(e);
+      setDeferredPrompt(e as PromptInstalar);
     };
+    const handleInstalada = () => setInstalada(true);
 
     window.addEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
-    return () => window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+    window.addEventListener("appinstalled", handleInstalada);
+    return () => {
+      window.removeEventListener("beforeinstallprompt", handleBeforeInstallPrompt);
+      window.removeEventListener("appinstalled", handleInstalada);
+    };
   }, [enlace]);
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -99,11 +132,25 @@ function VistaCliente() {
     await refetch();
   };
 
+  const cerrarRecien = () => {
+    sessionStorage.removeItem("recien_registrado");
+    setRecien(false);
+  };
+
+  const copiarEnlace = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setCopiado(true);
+    setTimeout(() => setCopiado(false), 2000);
+  };
+
   const handleClickGuardar = async () => {
     if (deferredPrompt) {
-      deferredPrompt.prompt();
+      await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === "accepted") setDeferredPrompt(null);
+      if (outcome === "accepted") {
+        setDeferredPrompt(null);
+        cerrarRecien();
+      }
     } else {
       setMostrarAyudaInstalacion(true);
     }
@@ -121,6 +168,28 @@ function VistaCliente() {
         </p>
       ) : (
         <div className="flex flex-col items-center gap-4 w-full max-w-sm">
+          {recien && !instalada && (
+            <div className="w-full rounded-2xl border border-gold bg-gold/20 px-4 py-3 text-center animate-fade-in">
+              <p className="text-sm font-semibold text-primary">
+                ¡Tu tarjeta está lista! Guárdala para tener tus sellos a un toque.
+              </p>
+              <button
+                type="button"
+                onClick={handleClickGuardar}
+                className="mt-2 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
+              >
+                Guardar en mi celular
+              </button>
+              <button
+                type="button"
+                onClick={cerrarRecien}
+                className="mt-2 text-xs text-muted-foreground underline"
+              >
+                Ahora no
+              </button>
+            </div>
+          )}
+
           {esHoyCumpleanos(data.cumpleanos) && (
             <p className="w-full rounded-2xl border border-gold bg-gold/20 px-4 py-3 text-center text-sm font-semibold text-primary animate-fade-in">
               🎂 ¡Feliz cumpleaños, {data.nombre_completo.split(" ")[0]}! Repostéanos y consigue tu
@@ -134,13 +203,15 @@ function VistaCliente() {
             instagram={data.instagram}
           />
 
-          <button
-            type="button"
-            onClick={handleClickGuardar}
-            className="text-sm font-semibold text-primary underline transition-transform active:scale-[0.97]"
-          >
-            📲 Guardar mi tarjeta en el celular
-          </button>
+          {!instalada && !recien && (
+            <button
+              type="button"
+              onClick={handleClickGuardar}
+              className="text-sm font-semibold text-primary underline transition-transform active:scale-[0.97]"
+            >
+              📲 Guardar mi tarjeta en el celular
+            </button>
+          )}
 
           <Terminos className="w-full max-w-sm" />
         </div>
@@ -193,37 +264,50 @@ function VistaCliente() {
         </div>
       )}
 
-      {/* MODAL GUÍA PWA */}
+      {/* MODAL GUÍA PARA GUARDAR */}
       {mostrarAyudaInstalacion && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm">
-          <div className="w-full max-w-xs rounded-3xl border-2 border-primary/80 bg-card p-6 shadow-2xl text-primary">
-            <div className="text-center">
-              <span className="text-3xl">🗺️</span>
-              <h3 className="mt-2 text-lg font-bold">¡Guarda tu tarjeta pirata!</h3>
-              <p className="mt-2 text-xs text-muted-foreground">
-                Accede directo a tus sellos desde tu pantalla de inicio:
-              </p>
-            </div>
-            <div className="mt-4 space-y-2 text-xs bg-cream p-3 rounded-xl border border-primary/20">
-              <p>
-                📱 <span className="font-semibold">Android (Chrome):</span> Toca los 3 puntos (⋮) y
-                selecciona{" "}
-                <span className="font-semibold text-primary">
-                  "Agregar a la pantalla principal"
-                </span>
-                .
-              </p>
-              <p className="pt-2 border-t border-primary/10">
-                🍏 <span className="font-semibold">iPhone (Safari):</span> Toca Compartir (⎋) y
-                elige <span className="font-semibold text-primary">"Agregar al inicio"</span>.
-              </p>
-            </div>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 backdrop-blur-sm animate-fade-in">
+          <div className="w-full max-w-xs rounded-3xl border border-primary/30 bg-card p-6 text-primary shadow-2xl">
+            <h3 className="text-center text-lg font-bold">
+              {entorno.enApp ? "Ábrela en tu navegador" : "Guarda tu tarjeta"}
+            </h3>
+            {entorno.enApp ? (
+              <>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Desde Instagram no se puede guardar. Toca ⋯ arriba y elige «Abrir en el
+                  navegador», o copia tu enlace y pégalo en Chrome o Safari.
+                </p>
+                <button
+                  type="button"
+                  onClick={copiarEnlace}
+                  className="mt-4 w-full rounded-xl border border-primary/40 px-4 py-2.5 text-sm font-semibold transition-transform active:scale-[0.97]"
+                >
+                  {copiado ? "¡Copiado!" : "Copiar mi enlace"}
+                </button>
+              </>
+            ) : (
+              <ol className="mt-3 list-decimal space-y-1.5 pl-5 text-sm text-muted-foreground">
+                {entorno.ios ? (
+                  <>
+                    <li>En Safari, toca Compartir (⎋).</li>
+                    <li>Elige «Agregar al inicio».</li>
+                    <li>Toca «Agregar». ¡Listo!</li>
+                  </>
+                ) : (
+                  <>
+                    <li>Toca los tres puntos (⋮) arriba.</li>
+                    <li>Elige «Instalar app» o «Agregar a pantalla principal».</li>
+                    <li>Confirma. ¡Listo!</li>
+                  </>
+                )}
+              </ol>
+            )}
             <button
               type="button"
               onClick={() => setMostrarAyudaInstalacion(false)}
-              className="mt-5 w-full rounded-xl bg-primary px-4 py-2.5 font-semibold text-primary-foreground shadow text-sm"
+              className="mt-5 w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.97]"
             >
-              ¡Entendido, Capitán!
+              Entendido
             </button>
           </div>
         </div>
