@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 
-
 export const Route = createFileRoute("/mi-tarjeta")({
   head: () => ({
     meta: [
@@ -102,7 +101,7 @@ function MiTarjeta() {
           <Link
             to="/t/$enlace"
             params={{ enlace: guardada }}
-            className="mt-5 block rounded-xl bg-caramel px-4 py-3 text-center font-semibold text-primary"
+            className="mt-5 block rounded-xl bg-caramel px-4 py-3 text-center font-semibold text-primary-foreground"
           >
             Abrir mi tarjeta guardada
           </Link>
@@ -162,7 +161,7 @@ function MiTarjeta() {
           {errorEnlace && <p className="mt-2 text-sm text-destructive">{errorEnlace}</p>}
           <button
             type="submit"
-            className="mt-3 w-full rounded-xl bg-caramel px-4 py-3 font-semibold text-primary transition-opacity hover:opacity-90"
+            className="mt-3 w-full rounded-xl bg-caramel px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90"
           >
             Ver mi tarjeta al instante
           </button>

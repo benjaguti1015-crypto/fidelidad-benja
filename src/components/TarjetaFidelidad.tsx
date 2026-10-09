@@ -59,7 +59,7 @@ export function TarjetaFidelidad({
                 activo
                   ? "animate-fade-in border-yellow-200 bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-600 text-amber-950 shadow-[0_4px_12px_rgba(217,119,6,0.45),inset_0_2px_4px_rgba(255,255,255,0.7)]"
                   : premio
-                    ? "border-amber-500/70 bg-amber-500/10 text-amber-700"
+                    ? "border-amber-500/70 bg-amber-500/10 text-amber-400"
                     : "border-primary/30 bg-cream text-primary/30"
               }`}
             >

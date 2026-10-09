@@ -305,7 +305,7 @@ function Panel() {
             setErrorSellos(null);
             setEscaneando(true);
           }}
-          className="mt-4 w-full rounded-xl bg-caramel px-3 py-3.5 text-base font-bold text-primary transition-transform active:scale-[0.98]"
+          className="mt-4 w-full rounded-xl bg-caramel px-3 py-3.5 text-base font-bold text-primary-foreground transition-transform active:scale-[0.98]"
         >
           📷 Escanear QR
         </button>
@@ -487,7 +487,7 @@ function Panel() {
                       })
                     }
                     disabled={sellos === 8 || !acumulacionActiva}
-                    className="h-11 flex-1 rounded-full bg-caramel font-semibold text-primary transition-transform active:scale-[0.98] disabled:opacity-40"
+                    className="h-11 flex-1 rounded-full bg-caramel font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-40"
                   >
                     {acumulacionActiva ? "Sumar sello" : "Pausado"}
                   </button>
@@ -526,7 +526,7 @@ function Panel() {
 
       {verTarjeta && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
           onClick={() => setVerTarjeta(null)}
         >
           <div onClick={(e) => e.stopPropagation()}>
@@ -547,7 +547,7 @@ function Panel() {
 
       {confirmar && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
           onClick={() => setConfirmar(null)}
         >
           <div
@@ -581,7 +581,7 @@ function Panel() {
                   setConfirmar(null);
                 }}
                 disabled={actualizarSellos.isPending}
-                className="flex-1 rounded-xl bg-caramel px-4 py-2.5 font-semibold text-primary disabled:opacity-60"
+                className="flex-1 rounded-xl bg-caramel px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
               >
                 {actualizarSellos.isPending ? "Guardando…" : "Guardar"}
               </button>
@@ -592,7 +592,7 @@ function Panel() {
 
       {eliminar && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-primary/60 px-4"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
           onClick={() => setEliminar(null)}
         >
           <div

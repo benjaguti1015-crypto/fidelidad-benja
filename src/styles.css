@@ -63,25 +63,25 @@
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.955 0.021 89);
-  --foreground: oklch(0.29 0.055 48);
-  --card: oklch(0.975 0.016 89);
-  --card-foreground: oklch(0.29 0.055 48);
-  --popover: oklch(0.975 0.016 89);
-  --popover-foreground: oklch(0.29 0.055 48);
-  --primary: oklch(0.29 0.055 48);
-  --primary-foreground: oklch(0.97 0.02 89);
-  --secondary: oklch(0.9 0.045 82);
-  --secondary-foreground: oklch(0.29 0.055 48);
-  --muted: oklch(0.92 0.032 85);
-  --muted-foreground: oklch(0.47 0.05 55);
-  --accent: oklch(0.72 0.096 68);
-  --accent-foreground: oklch(0.24 0.05 48);
-  --destructive: oklch(0.53 0.17 27);
+  --background: oklch(0.17 0.02 55);
+  --foreground: oklch(0.95 0.02 85);
+  --card: oklch(0.22 0.025 55);
+  --card-foreground: oklch(0.95 0.02 85);
+  --popover: oklch(0.22 0.025 55);
+  --popover-foreground: oklch(0.95 0.02 85);
+  --primary: oklch(0.95 0.025 85);
+  --primary-foreground: oklch(0.2 0.03 55);
+  --secondary: oklch(0.27 0.03 55);
+  --secondary-foreground: oklch(0.95 0.02 85);
+  --muted: oklch(0.27 0.03 55);
+  --muted-foreground: oklch(0.72 0.04 75);
+  --accent: oklch(0.8 0.13 82);
+  --accent-foreground: oklch(0.2 0.03 55);
+  --destructive: oklch(0.68 0.19 25);
   --destructive-foreground: oklch(0.97 0.02 89);
-  --border: oklch(0.82 0.05 70);
-  --input: oklch(0.86 0.04 78);
-  --ring: oklch(0.66 0.1 65);
+  --border: oklch(1 0 0 / 14%);
+  --input: oklch(1 0 0 / 14%);
+  --ring: oklch(0.8 0.13 82);
   --chart-1: oklch(0.72 0.096 68);
   --chart-2: oklch(0.6 0.09 60);
   --chart-3: oklch(0.45 0.07 50);
@@ -96,12 +96,12 @@
   --sidebar-border: oklch(0.82 0.05 70);
   --sidebar-ring: oklch(0.66 0.1 65);
 
-  --caramel: oklch(0.72 0.096 68);
-  --caramel-deep: oklch(0.62 0.1 62);
-  --gold: oklch(0.78 0.12 85);
-  --gold-foreground: oklch(0.29 0.055 48);
-  --cream: oklch(0.965 0.018 89);
-  --shadow-card: 0 18px 40px -18px oklch(0.29 0.055 48 / 0.35);
+  --caramel: oklch(0.8 0.13 82);
+  --caramel-deep: oklch(0.7 0.13 78);
+  --gold: oklch(0.82 0.14 85);
+  --gold-foreground: oklch(0.2 0.03 55);
+  --cream: oklch(0.27 0.03 55);
+  --shadow-card: 0 18px 40px -18px oklch(0 0 0 / 0.6);
   --font-rustic: "Rye", "Georgia", serif;
   --font-body: "Cabin", ui-sans-serif, system-ui, sans-serif;
 }
