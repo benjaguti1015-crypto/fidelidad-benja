@@ -45,9 +45,7 @@ function Registro() {
       return;
     }
 
-    const cumpleanosFormato = cumpleanos 
-      ? cumpleanos.split('-').reverse().join('/') 
-      : null;
+    const cumpleanosFormato = cumpleanos ? cumpleanos.split("-").reverse().join("/") : null;
     setEnviando(true);
     const { data, error: err } = await supabase.rpc("registro_publico", {
       p_nombre: nombre.trim(),
@@ -64,39 +62,39 @@ function Registro() {
     navigate({ to: "/t/$enlace", params: { enlace: data as string } });
   }
 
+  const campo =
+    "mt-1 w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none transition-colors focus:border-primary";
+
   return (
-    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-10">
+    <main className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
       <form
         onSubmit={enviar}
-        className="w-full max-w-sm rounded-3xl border-2 border-primary/70 bg-card p-6 shadow-card"
+        className="w-full max-w-sm rounded-3xl border border-primary/30 bg-card p-6 shadow-card"
       >
         <img
           src="/logo.jpg"
           alt="Logo Dulces del Rey Pirata"
-          className="mx-auto h-24 w-24 object-contain"
+          className="mx-auto h-16 w-16 rounded-full border border-primary/20 bg-cream object-contain p-0.5"
         />
-        <h1 className="mt-3 text-center text-xl leading-tight text-primary font-bold">
+        <h1 className="mt-3 text-center text-xl font-bold leading-tight text-primary">
           Únete a la tripulación
         </h1>
-        <p className="mt-1 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
-          Tu tarjeta de 8 sellos
-        </p>
+        <p className="mt-1 text-center text-sm text-muted-foreground">Tu tarjeta de 8 sellos</p>
 
-        {/* NOMBRE Y APELLIDO */}
-        <label className="mt-6 block text-sm font-semibold text-primary" htmlFor="nombre">
+        <label className="mt-5 block text-sm font-semibold text-primary" htmlFor="nombre">
           Nombre y apellido
         </label>
         <input
           id="nombre"
           required
           maxLength={80}
+          autoComplete="name"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
           placeholder="Ej: Ana Pérez"
-          className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
+          className={campo}
         />
 
-        {/* USUARIO DE INSTAGRAM */}
         <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="instagram">
           Usuario de Instagram
         </label>
@@ -104,44 +102,40 @@ function Registro() {
           id="instagram"
           required
           maxLength={50}
+          autoCapitalize="none"
+          autoCorrect="off"
           value={instagram}
           onChange={(e) => setInstagram(e.target.value)}
           placeholder="@tuusuario"
-          className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
+          className={campo}
         />
 
-        {/* FECHA DE CUMPLEAÑOS */}
         <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="cumpleanos">
-          🎂 Fecha de cumpleaños <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
+          🎂 Cumpleaños{" "}
+          <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
         </label>
         <input
           id="cumpleanos"
           type="date"
           value={cumpleanos}
           onChange={(e) => setCumpleanos(e.target.value)}
-          className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary text-sm"
+          className={campo}
         />
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          Te regalaremos una sorpresa pirata en tu mes especial. 🎉
-        </p>
+        <p className="mt-1 text-xs text-muted-foreground">Así te saludamos en tu día. 🎉</p>
 
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
-
-        <Terminos className="mt-4" />
 
         <button
           type="submit"
           disabled={enviando || !nombre.trim() || !instagram.trim()}
-          className="mt-4 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
+          className="mt-5 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-[transform,opacity] hover:opacity-90 active:scale-[0.97] disabled:opacity-60"
         >
           {enviando ? "Creando tarjeta…" : "Crear mi tarjeta"}
         </button>
 
-        <p className="mt-3 text-center text-xs text-muted-foreground">
-          Guarda el enlace de tu tarjeta para ver tus sellos cuando quieras.
-        </p>
+        <Terminos className="mt-4" />
 
-        <p className="mt-2 text-center text-xs text-muted-foreground">
+        <p className="mt-4 text-center text-xs text-muted-foreground">
           ¿Ya tienes tarjeta?{" "}
           <Link to="/mi-tarjeta" className="font-semibold text-primary underline">
             Búscala aquí
