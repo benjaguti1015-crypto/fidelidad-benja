@@ -92,7 +92,11 @@ export function ActivarAvisos({
         disabled={estado === "guardando"}
         className="text-sm font-semibold text-primary underline transition-transform active:scale-[0.97] disabled:opacity-60"
       >
-        {estado === "guardando" ? "Activando…" : "🔔 Activar avisos de promos"}
+        {estado === "guardando"
+          ? "Activando…"
+          : localStorage.getItem("avisos_aceptados")
+            ? "🔔 Activa los avisos que aceptaste"
+            : "🔔 Activar avisos de promos"}
       </button>
       {estado === "error" && (
         <p className="mt-1 text-xs text-destructive">No pudimos activarlos. Inténtalo de nuevo.</p>

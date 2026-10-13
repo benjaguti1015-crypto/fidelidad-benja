@@ -219,6 +219,10 @@ function VistaCliente() {
           <BotonWallet enlace={enlace} />
 
           <Terminos className="w-full max-w-sm" />
+
+          <a href="/privacidad" className="text-xs text-muted-foreground underline">
+            Política de privacidad
+          </a>
         </div>
       )}
 

@@ -31,11 +31,17 @@ function Registro() {
   const [cumpleanos, setCumpleanos] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
+  const [acepto, setAcepto] = useState(false);
+  const [quiereAvisos, setQuiereAvisos] = useState(false);
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
+    if (!acepto) {
+      setError("Para crear tu tarjeta debes aceptar los términos y la política de privacidad.");
+      return;
+    }
     if (nombre.trim().length < 3) {
       setError("Escribe tu nombre y apellido.");
       return;
@@ -60,6 +66,7 @@ function Registro() {
     }
     localStorage.setItem("tarjeta_enlace", data as string);
     sessionStorage.setItem("recien_registrado", "1");
+    if (quiereAvisos) localStorage.setItem("avisos_aceptados", "1");
     navigate({ to: "/t/$enlace", params: { enlace: data as string } });
   }
 
@@ -124,17 +131,53 @@ function Registro() {
         />
         <p className="mt-1 text-xs text-muted-foreground">Así te saludamos en tu día. 🎉</p>
 
+        <Terminos className="mt-5" />
+
+        <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-primary">
+          <input
+            type="checkbox"
+            checked={acepto}
+            onChange={(e) => setAcepto(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[oklch(0.8_0.13_82)]"
+          />
+          <span>
+            Leí y acepto los términos y condiciones y la{" "}
+            <a
+              href="/privacidad"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold underline"
+            >
+              política de privacidad
+            </a>
+            .
+          </span>
+        </label>
+
+        <label className="mt-3 flex cursor-pointer items-start gap-3 text-sm text-primary">
+          <input
+            type="checkbox"
+            checked={quiereAvisos}
+            onChange={(e) => setQuiereAvisos(e.target.checked)}
+            className="mt-0.5 h-5 w-5 shrink-0 accent-[oklch(0.8_0.13_82)]"
+          />
+          <span>
+            Quiero recibir avisos de promociones en mi celular.{" "}
+            <span className="text-muted-foreground">
+              (Opcional. Puedes desactivarlos cuando quieras.)
+            </span>
+          </span>
+        </label>
+
         {error && <p className="mt-3 text-sm text-destructive">{error}</p>}
 
         <button
           type="submit"
-          disabled={enviando || !nombre.trim() || !instagram.trim()}
+          disabled={enviando || !acepto || !nombre.trim() || !instagram.trim()}
           className="mt-5 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-[transform,opacity] hover:opacity-90 active:scale-[0.97] disabled:opacity-60"
         >
           {enviando ? "Creando tarjeta…" : "Crear mi tarjeta"}
         </button>
-
-        <Terminos className="mt-4" />
 
         <p className="mt-4 text-center text-xs text-muted-foreground">
           ¿Ya tienes tarjeta?{" "}
