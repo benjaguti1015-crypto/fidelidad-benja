@@ -41,8 +41,15 @@ function Privacidad() {
 
         <Seccion titulo="1. Quién es responsable">
           <p>
-            Dulces del Rey Pirata, emprendimiento de galletas y dulces en Chile. Puedes contactarnos
-            por mensaje directo en Instagram:{" "}
+            Benjamín Ian Gutierrez Vera, titular de Dulces del Rey Pirata, emprendimiento de
+            galletas y dulces en Chile. Puedes escribirnos a{" "}
+            <a
+              href="mailto:benjaguti1015@gmail.com"
+              className="font-semibold text-primary underline"
+            >
+              benjaguti1015@gmail.com
+            </a>{" "}
+            o por mensaje directo en Instagram:{" "}
             <a
               href={INSTAGRAM}
               target="_blank"
@@ -61,6 +68,10 @@ function Privacidad() {
             <li>Tu usuario de Instagram.</li>
             <li>Tu fecha de cumpleaños, solo si decides darla.</li>
             <li>Tus sellos y premios, y un enlace único de tu tarjeta.</li>
+            <li>
+              La fecha en que aceptaste estos términos y si aceptaste recibir avisos, como respaldo
+              de tu consentimiento.
+            </li>
             <li>
               Si activas los avisos: un identificador técnico de tu dispositivo, necesario para
               enviarte notificaciones.
@@ -125,8 +136,9 @@ function Privacidad() {
             de enviarte notificaciones.
           </p>
           <p>
-            Escríbenos por Instagram y respondemos tu solicitud en un plazo máximo de 30 días. Para
-            dejar de recibir avisos también puedes desactivarlos en los permisos de tu navegador.
+            Escríbenos por correo o Instagram y respondemos tu solicitud en un plazo máximo de 30
+            días. Para dejar de recibir avisos también puedes desactivarlos en los permisos de tu
+            navegador.
           </p>
           <p>
             Si crees que no respetamos tus derechos, puedes reclamar ante la autoridad de protección

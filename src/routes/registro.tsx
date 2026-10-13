@@ -64,6 +64,10 @@ function Registro() {
       setError("No pudimos crear tu tarjeta. Inténtalo de nuevo.");
       return;
     }
+    // Respaldo del consentimiento; si falla no bloquea el registro.
+    await supabase
+      .rpc("registrar_consentimiento", { p_enlace: data as string, p_acepta_avisos: quiereAvisos })
+      .then(({ error: e }) => e && console.error(e));
     localStorage.setItem("tarjeta_enlace", data as string);
     sessionStorage.setItem("recien_registrado", "1");
     if (quiereAvisos) localStorage.setItem("avisos_aceptados", "1");
