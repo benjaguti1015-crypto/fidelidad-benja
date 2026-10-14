@@ -6,6 +6,7 @@ import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { Terminos } from "@/components/Terminos";
 import { ActivarAvisos } from "@/components/ActivarAvisos";
 import { BotonWallet } from "@/components/BotonWallet";
+import { CampoCumpleanos } from "@/components/CampoCumpleanos";
 
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
@@ -56,7 +57,7 @@ function VistaCliente() {
 
   // Estados para el Modal de Cumpleaños
   const [mostrarModalCumple, setMostrarModalCumple] = useState(false);
-  const [fechaCumple, setFechaCumple] = useState("");
+  const [fechaCumple, setFechaCumple] = useState<string | null>(null);
   const [guardandoCumple, setGuardandoCumple] = useState(false);
   const [errorCumple, setErrorCumple] = useState<string | null>(null);
 
@@ -114,12 +115,10 @@ function VistaCliente() {
     setGuardandoCumple(true);
     setErrorCumple(null);
 
-    // yyyy-mm-dd -> dd/mm/yyyy, mismo formato que usa /registro
-    const cumpleanosFormato = fechaCumple.split("-").reverse().join("/");
-
+    // fechaCumple ya viene como dd/mm/aaaa, el mismo formato que usa /registro
     const { data: guardado, error } = await supabase.rpc("actualizar_cumpleanos_publico", {
       p_enlace: enlace,
-      p_cumpleanos: cumpleanosFormato,
+      p_cumpleanos: fechaCumple,
     });
 
     setGuardandoCumple(false);
@@ -130,7 +129,7 @@ function VistaCliente() {
     }
 
     setMostrarModalCumple(false);
-    setFechaCumple("");
+    setFechaCumple(null);
     await refetch();
   };
 
@@ -243,20 +242,14 @@ function VistaCliente() {
                 <label className="text-[11px] font-semibold text-primary block mb-1">
                   Tu fecha de nacimiento:
                 </label>
-                <input
-                  type="date"
-                  value={fechaCumple}
-                  onChange={(e) => setFechaCumple(e.target.value)}
-                  required
-                  className="w-full rounded-xl border-2 border-primary/40 bg-cream/50 px-3 py-2 text-sm text-primary outline-none focus:border-primary"
-                />
+                <CampoCumpleanos onChange={(fecha) => setFechaCumple(fecha)} />
               </div>
 
               {errorCumple && <p className="text-xs text-destructive text-center">{errorCumple}</p>}
 
               <button
                 type="submit"
-                disabled={guardandoCumple}
+                disabled={guardandoCumple || !fechaCumple}
                 className="w-full rounded-xl bg-primary px-4 py-2.5 font-bold text-primary-foreground shadow transition-opacity hover:opacity-90 text-sm disabled:opacity-60"
               >
                 {guardandoCumple ? "Guardando..." : "¡Guardar mi fecha! 🏴‍☠️"}

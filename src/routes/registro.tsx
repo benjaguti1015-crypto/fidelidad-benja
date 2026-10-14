@@ -2,6 +2,7 @@ import { useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Terminos } from "@/components/Terminos";
+import { CampoCumpleanos, type EstadoCumple } from "@/components/CampoCumpleanos";
 
 export const Route = createFileRoute("/registro")({
   head: () => ({
@@ -28,7 +29,10 @@ function Registro() {
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
   const [instagram, setInstagram] = useState("");
-  const [cumpleanos, setCumpleanos] = useState("");
+  const [cumple, setCumple] = useState<{ fecha: string | null; estado: EstadoCumple }>({
+    fecha: null,
+    estado: "vacio",
+  });
   const [error, setError] = useState<string | null>(null);
   const [enviando, setEnviando] = useState(false);
   const [acepto, setAcepto] = useState(false);
@@ -51,12 +55,16 @@ function Registro() {
       return;
     }
 
-    const cumpleanosFormato = cumpleanos ? cumpleanos.split("-").reverse().join("/") : null;
+    if (cumple.estado === "invalida") {
+      setError("Revisa tu fecha de cumpleaños o déjala en blanco.");
+      return;
+    }
+
     setEnviando(true);
     const { data, error: err } = await supabase.rpc("registro_publico", {
       p_nombre: nombre.trim(),
       p_instagram: instagram.trim().replace(/^@/, ""),
-      p_cumpleanos: cumpleanosFormato,
+      p_cumpleanos: cumple.fecha,
     });
     setEnviando(false);
 
@@ -122,18 +130,16 @@ function Registro() {
           className={campo}
         />
 
-        <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="cumpleanos">
+        <p className="mt-4 text-sm font-semibold text-primary">
           🎂 Cumpleaños{" "}
           <span className="text-xs font-normal text-muted-foreground">(opcional)</span>
-        </label>
-        <input
-          id="cumpleanos"
-          type="date"
-          value={cumpleanos}
-          onChange={(e) => setCumpleanos(e.target.value)}
-          className={campo}
-        />
-        <p className="mt-1 text-xs text-muted-foreground">Así te saludamos en tu día. 🎉</p>
+        </p>
+        <div className="mt-1">
+          <CampoCumpleanos onChange={(fecha, estado) => setCumple({ fecha, estado })} />
+        </div>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Día, mes y año. Así te saludamos en tu día. 🎉
+        </p>
 
         <Terminos className="mt-5" />
 
