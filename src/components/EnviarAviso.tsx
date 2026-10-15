@@ -15,6 +15,12 @@ export type ClienteAviso = {
   sellos: number;
 };
 
+const CANALES = {
+  app: "🔔 Avisos de la app",
+  wallet: "💳 Google Wallet",
+} as const;
+type Canal = keyof typeof CANALES;
+
 const GRUPOS = {
   todos: "Todos",
   cumple: "🎂 Cumpleaños hoy",
@@ -32,17 +38,17 @@ function enGrupo(grupo: Grupo, c: ClienteAviso) {
 }
 
 export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
+  const [canal, setCanal] = useState<Canal>("app");
   const [titulo, setTitulo] = useState("");
   const [texto, setTexto] = useState("");
   const [grupo, setGrupo] = useState<Grupo>("todos");
   const [elegidos, setElegidos] = useState<Set<string>>(new Set());
   const [busqueda, setBusqueda] = useState("");
-  const [tambienWallet, setTambienWallet] = useState(false);
   const [confirmando, setConfirmando] = useState(false);
   const [enviando, setEnviando] = useState(false);
   const [resultado, setResultado] = useState<string | null>(null);
 
-  // Por avisos del navegador solo se puede avisar a quien los activó en su celular.
+  // Por la app solo se puede avisar a quien activó los avisos en su celular.
   const { data: conAvisos = new Set<string>() } = useQuery({
     queryKey: ["suscripciones_push"],
     queryFn: async () => {
@@ -53,27 +59,23 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
     refetchInterval: 30000,
   });
 
-  const candidatos = useMemo(
-    () => clientes.filter((c) => conAvisos.has(c.id)),
-    [clientes, conAvisos],
-  );
-  const enElGrupo = (lista: ClienteAviso[]) =>
+  const conApp = useMemo(() => clientes.filter((c) => conAvisos.has(c.id)), [clientes, conAvisos]);
+  // Wallet: no sabemos quién guardó el pase, así que se intenta con todos los del grupo.
+  const universo = canal === "app" ? conApp : clientes;
+  const destinatarios =
     grupo === "elegir"
-      ? lista.filter((c) => elegidos.has(c.id))
-      : lista.filter((c) => enGrupo(grupo, c));
-  const destinatarios = enElGrupo(candidatos);
-  // Wallet: no sabemos quién guardó el pase, así que se intenta con todo el grupo.
-  const destinatariosWallet = enElGrupo(clientes);
+      ? universo.filter((c) => elegidos.has(c.id))
+      : universo.filter((c) => enGrupo(grupo, c));
 
   const visiblesParaElegir = useMemo(() => {
     const q = busqueda.trim().toLowerCase().replace(/^@/, "");
-    if (!q) return candidatos;
-    return candidatos.filter(
+    if (!q) return universo;
+    return universo.filter(
       (c) =>
         c.nombre_completo.toLowerCase().includes(q) ||
         (c.instagram ?? "").toLowerCase().includes(q),
     );
-  }, [candidatos, busqueda]);
+  }, [universo, busqueda]);
 
   function alternar(id: string) {
     setElegidos((prev) => {
@@ -88,22 +90,19 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
     setEnviando(true);
     setResultado(null);
     const { data } = await supabase.auth.getSession();
-    const conWallet = tambienWallet && destinatariosWallet.length > 0;
+    const ids = grupo === "todos" ? undefined : destinatarios.map((c) => c.id);
     const resp = await fetch("/api/enviar-aviso", {
       method: "POST",
       headers: {
         "content-type": "application/json",
         authorization: `Bearer ${data.session?.access_token ?? ""}`,
       },
-      body: JSON.stringify({
-        titulo,
-        texto,
-        push: destinatarios.length > 0,
-        // Sin lista = todos los que tienen avisos activos.
-        clientes: grupo === "todos" ? undefined : destinatarios.map((c) => c.id),
-        wallet: conWallet,
-        clientesWallet: grupo === "todos" ? undefined : destinatariosWallet.map((c) => c.id),
-      }),
+      // Un canal por envío. Sin lista = todos los del canal.
+      body: JSON.stringify(
+        canal === "app"
+          ? { titulo, texto, push: true, clientes: ids }
+          : { titulo, texto, push: false, wallet: true, clientesWallet: ids },
+      ),
     }).catch(() => null);
     const cuerpo = (await resp?.json().catch(() => null)) as {
       enviados?: number;
@@ -118,40 +117,68 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
       setResultado(cuerpo?.error ?? "No se pudo enviar. Inténtalo de nuevo.");
       return;
     }
-    const partes = [`Avisos: enviado a ${cuerpo?.enviados} de ${cuerpo?.total} dispositivos.`];
-    if (cuerpo?.wallet) {
-      partes.push(
-        "error" in cuerpo.wallet
-          ? `Wallet: ${cuerpo.wallet.error}`
-          : `Wallet: ${cuerpo.wallet.enviados} pases recibieron el mensaje.`,
+    if (canal === "app") {
+      setResultado(`Enviado a ${cuerpo?.enviados} de ${cuerpo?.total} dispositivos.`);
+    } else if (cuerpo?.wallet && "error" in cuerpo.wallet) {
+      setResultado(cuerpo.wallet.error);
+      return;
+    } else {
+      const w = cuerpo?.wallet as { enviados: number; intentos: number } | undefined;
+      setResultado(
+        `${w?.enviados ?? 0} pases recibieron el mensaje (de ${w?.intentos ?? 0} clientes).`,
       );
     }
-    setResultado(partes.join(" "));
     setTitulo("");
     setTexto("");
   }
 
-  const hayDestino = destinatarios.length > 0 || (tambienWallet && destinatariosWallet.length > 0);
-  const listo = titulo.trim() && texto.trim() && hayDestino;
-  const cuantosBoton = tambienWallet
-    ? Math.max(destinatarios.length, destinatariosWallet.length)
-    : destinatarios.length;
+  const listo = titulo.trim() && texto.trim() && destinatarios.length > 0;
 
   return (
     <details className="mt-3 rounded-2xl border border-primary/30 bg-card px-4 py-3">
       <summary className="cursor-pointer text-sm font-semibold text-primary">
         🔔 Enviar aviso{" "}
         <span className="font-normal text-muted-foreground">
-          ({candidatos.length} con avisos activos)
+          ({conApp.length} con avisos activos)
         </span>
       </summary>
       <div className="mt-3 space-y-3">
+        <fieldset>
+          <legend className="text-xs font-semibold text-primary">¿Por dónde?</legend>
+          <div className="mt-1.5 grid grid-cols-2 gap-1.5">
+            {(Object.keys(CANALES) as Canal[]).map((c) => (
+              <button
+                key={c}
+                type="button"
+                aria-pressed={canal === c}
+                onClick={() => {
+                  setCanal(c);
+                  setConfirmando(false);
+                  setResultado(null);
+                }}
+                className={`rounded-xl border px-3 py-2 text-sm font-semibold transition-[transform,background-color] duration-150 active:scale-[0.97] ${
+                  canal === c
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-primary/30 bg-cream text-primary"
+                }`}
+              >
+                {CANALES[c]}
+              </button>
+            ))}
+          </div>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {canal === "app"
+              ? "Llega como notificación a quien activó los avisos en su tarjeta."
+              : "Se intenta con todos los del grupo; solo lo recibe quien guardó su pase en Wallet."}
+          </p>
+        </fieldset>
+
         <fieldset>
           <legend className="text-xs font-semibold text-primary">¿A quién?</legend>
           <div className="mt-1.5 flex flex-wrap gap-1.5">
             {(Object.keys(GRUPOS) as Grupo[]).map((g) => {
               const cuantos =
-                g === "elegir" ? elegidos.size : candidatos.filter((c) => enGrupo(g, c)).length;
+                g === "elegir" ? elegidos.size : universo.filter((c) => enGrupo(g, c)).length;
               return (
                 <button
                   key={g}
@@ -185,9 +212,7 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
             />
             <ul className="mt-2 max-h-48 space-y-0.5 overflow-y-auto">
               {visiblesParaElegir.length === 0 && (
-                <li className="px-2 py-1 text-xs text-muted-foreground">
-                  Nadie con avisos activos coincide.
-                </li>
+                <li className="px-2 py-1 text-xs text-muted-foreground">Nadie coincide.</li>
               )}
               {visiblesParaElegir.map((c) => (
                 <li key={c.id}>
@@ -232,24 +257,6 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
           className={campo}
         />
 
-        <label className="flex cursor-pointer items-start gap-3 text-sm text-primary">
-          <input
-            type="checkbox"
-            checked={tambienWallet}
-            onChange={(e) => {
-              setTambienWallet(e.target.checked);
-              setConfirmando(false);
-            }}
-            className="mt-0.5 h-5 w-5 shrink-0 accent-[oklch(0.8_0.13_82)]"
-          />
-          <span>
-            💳 Enviar también al pase de Google Wallet{" "}
-            <span className="text-muted-foreground">
-              (se intenta con {destinatariosWallet.length}; solo lo recibe quien guardó su pase)
-            </span>
-          </span>
-        </label>
-
         {confirmando ? (
           <div className="flex gap-2">
             <button
@@ -265,7 +272,7 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
               disabled={enviando}
               className="flex-1 rounded-xl bg-caramel px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-60"
             >
-              {enviando ? "Enviando…" : `Confirmar (${cuantosBoton})`}
+              {enviando ? "Enviando…" : `Confirmar (${destinatarios.length})`}
             </button>
           </div>
         ) : (
@@ -275,18 +282,17 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
             onClick={() => setConfirmando(true)}
             className="w-full rounded-xl bg-primary px-4 py-2.5 text-sm font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-50"
           >
-            Enviar a {cuantosBoton} {cuantosBoton === 1 ? "cliente" : "clientes"}
+            Enviar por {canal === "app" ? "la app" : "Wallet"} a {destinatarios.length}{" "}
+            {destinatarios.length === 1 ? "cliente" : "clientes"}
           </button>
         )}
-        {candidatos.length === 0 && (
+        {canal === "app" && conApp.length === 0 && (
           <p className="text-xs text-muted-foreground">
             Aún nadie activó los avisos. Se activan desde la tarjeta del cliente.
           </p>
         )}
-        {candidatos.length > 0 && destinatarios.length === 0 && (
-          <p className="text-xs text-muted-foreground">
-            Nadie con avisos activos está en este grupo.
-          </p>
+        {universo.length > 0 && destinatarios.length === 0 && (
+          <p className="text-xs text-muted-foreground">Nadie está en este grupo.</p>
         )}
         {resultado && <p className="text-sm font-semibold text-primary">{resultado}</p>}
       </div>
