@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { esHoyCumpleanos } from "@/lib/fecha";
-import { META, PREMIOS } from "@/lib/marca";
+import { AVISO_LLEGADA, META, PREMIOS } from "@/lib/marca";
 
 const campo =
   "w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary";
@@ -143,6 +143,21 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
         </span>
       </summary>
       <div className="mt-3 space-y-3">
+        <button
+          type="button"
+          onClick={() => {
+            // A todos los del canal elegido; la confirmación evita mandarlo por error.
+            setGrupo("todos");
+            setTitulo(AVISO_LLEGADA.titulo);
+            setTexto(AVISO_LLEGADA.texto);
+            setResultado(universo.length ? null : "Nadie para avisar en este canal.");
+            setConfirmando(universo.length > 0);
+          }}
+          className="w-full rounded-xl border border-gold bg-gold/20 px-4 py-2.5 text-sm font-semibold text-primary transition-transform active:scale-[0.98]"
+        >
+          🍪 Ya llegué a la U
+        </button>
+
         <fieldset>
           <legend className="text-xs font-semibold text-primary">¿Por dónde?</legend>
           <div className="mt-1.5 grid grid-cols-2 gap-1.5">

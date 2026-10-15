@@ -13,3 +13,9 @@ export const PREMIOS: Record<number, string> = {
 
 // Prefijo del QR que lee el escáner del panel.
 export const PREFIJO_QR = "DRP:";
+
+// Mensaje del botón "Ya llegué a la U" del panel.
+export const AVISO_LLEGADA = {
+  titulo: "¡Ya llegaron las galletas! 🍪",
+  texto: "Estamos en la UBB con galletas frescas. ¡Pasa con tu tarjeta y suma tu sello!",
+};
