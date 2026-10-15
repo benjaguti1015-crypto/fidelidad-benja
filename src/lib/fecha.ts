@@ -9,3 +9,12 @@ export function fechaCumpleanos(dia: string, mes: string, anio: string, hoy = ne
   if (!existe || a < 1900 || fecha > hoy) return null;
   return `${String(d).padStart(2, "0")}/${String(m).padStart(2, "0")}/${a}`;
 }
+
+// Acepta dd/mm/aaaa (formato del registro) y aaaa-mm-dd.
+export function esHoyCumpleanos(fecha?: string | null, hoy = new Date()) {
+  const m =
+    fecha?.match(/^(\d{1,2})\/(\d{1,2})\/\d{4}$/) ?? fecha?.match(/^\d{4}-(\d{2})-(\d{2})$/);
+  if (!m || !fecha) return false;
+  const [dia, mes] = fecha.includes("/") ? [+m[1]!, +m[2]!] : [+m[2]!, +m[1]!];
+  return dia === hoy.getDate() && mes === hoy.getMonth() + 1;
+}

@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { supabase } from "@/integrations/supabase/client";
 import { Terminos } from "@/components/Terminos";
 import { CampoCumpleanos, type EstadoCumple } from "@/components/CampoCumpleanos";
+import { guardarSuscripcion, pedirSuscripcion } from "@/lib/avisos";
+import { MARCA, META } from "@/lib/marca";
 
 export const Route = createFileRoute("/registro")({
   head: () => ({
@@ -37,6 +39,26 @@ function Registro() {
   const [enviando, setEnviando] = useState(false);
   const [acepto, setAcepto] = useState(false);
   const [quiereAvisos, setQuiereAvisos] = useState(false);
+  const [permisoAvisos, setPermisoAvisos] = useState<"pidiendo" | "activo" | "bloqueado" | null>(
+    null,
+  );
+  // Se pide el permiso al marcar la casilla (toque del usuario) y se guarda al crear la tarjeta.
+  const suscripcion = useRef<PushSubscription | null>(null);
+
+  async function cambiarAvisos(marcada: boolean) {
+    setQuiereAvisos(marcada);
+    if (!marcada || suscripcion.current) return;
+    setPermisoAvisos("pidiendo");
+    try {
+      const sub = await pedirSuscripcion();
+      if (sub === "denegado") return setPermisoAvisos("bloqueado");
+      suscripcion.current = sub;
+      setPermisoAvisos(sub ? "activo" : null);
+    } catch (e) {
+      console.error("No se pudieron pedir los avisos:", e);
+      setPermisoAvisos(null);
+    }
+  }
 
   async function enviar(e: React.FormEvent) {
     e.preventDefault();
@@ -79,6 +101,11 @@ function Registro() {
     localStorage.setItem("tarjeta_enlace", data as string);
     sessionStorage.setItem("recien_registrado", "1");
     if (quiereAvisos) localStorage.setItem("avisos_aceptados", "1");
+    if (quiereAvisos && suscripcion.current) {
+      await guardarSuscripcion(data as string, suscripcion.current).catch((e) =>
+        console.error("No se guardó la suscripción de avisos:", e),
+      );
+    }
     navigate({ to: "/t/$enlace", params: { enlace: data as string } });
   }
 
@@ -93,13 +120,15 @@ function Registro() {
       >
         <img
           src="/logo.jpg"
-          alt="Logo Dulces del Rey Pirata"
+          alt={`Logo ${MARCA}`}
           className="mx-auto h-16 w-16 rounded-full border border-primary/20 bg-cream object-contain p-0.5"
         />
         <h1 className="mt-3 text-center text-xl font-bold leading-tight text-primary">
           Únete a la tripulación
         </h1>
-        <p className="mt-1 text-center text-sm text-muted-foreground">Tu tarjeta de 8 sellos</p>
+        <p className="mt-1 text-center text-sm text-muted-foreground">
+          Tu tarjeta de {META} sellos
+        </p>
 
         <label className="mt-5 block text-sm font-semibold text-primary" htmlFor="nombre">
           Nombre y apellido
@@ -168,7 +197,7 @@ function Registro() {
           <input
             type="checkbox"
             checked={quiereAvisos}
-            onChange={(e) => setQuiereAvisos(e.target.checked)}
+            onChange={(e) => cambiarAvisos(e.target.checked)}
             className="mt-0.5 h-5 w-5 shrink-0 accent-[oklch(0.8_0.13_82)]"
           />
           <span>
@@ -176,6 +205,14 @@ function Registro() {
             <span className="text-muted-foreground">
               (Opcional. Puedes desactivarlos cuando quieras.)
             </span>
+            {quiereAvisos && permisoAvisos && (
+              <span className="mt-1 block text-xs font-semibold" role="status">
+                {permisoAvisos === "pidiendo" && "Toca «Permitir» en el aviso de tu celular."}
+                {permisoAvisos === "activo" && "🔔 ¡Listo! Te avisaremos de las promos."}
+                {permisoAvisos === "bloqueado" &&
+                  "Bloqueaste los avisos. Puedes activarlos después en los permisos del navegador."}
+              </span>
+            )}
           </span>
         </label>
 

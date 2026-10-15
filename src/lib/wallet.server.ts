@@ -1,5 +1,6 @@
 import { createSign } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
+import { MARCA, META, PREFIJO_QR, PREMIOS } from "./marca";
 
 const API = "https://walletobjects.googleapis.com/walletobjects/v1";
 const CLASE = "pirata_fidelidad";
@@ -11,10 +12,10 @@ export type TarjetaWallet = {
 };
 
 export function configWallet() {
-  const issuer = process.env.GOOGLE_WALLET_ISSUER_ID;
-  const email = process.env.GOOGLE_WALLET_SA_EMAIL;
+  const issuer = process.env["GOOGLE_WALLET_ISSUER_ID"];
+  const email = process.env["GOOGLE_WALLET_SA_EMAIL"];
   // Vercel guarda la clave con \n literales.
-  const clave = process.env.GOOGLE_WALLET_PRIVATE_KEY?.replace(/\\n/g, "\n");
+  const clave = process.env["GOOGLE_WALLET_PRIVATE_KEY"]?.replace(/\\n/g, "\n");
   return issuer && email && clave ? { issuer, email, clave } : null;
 }
 type Config = NonNullable<ReturnType<typeof configWallet>>;
@@ -26,7 +27,7 @@ function firmarJwt(payload: object, clave: string) {
   return `${cuerpo}.${firma}`;
 }
 
-async function tokenApi(cfg: Config) {
+export async function tokenApi(cfg: Config) {
   const ahora = Math.floor(Date.now() / 1000);
   const assertion = firmarJwt(
     {
@@ -52,7 +53,7 @@ async function tokenApi(cfg: Config) {
 
 const datosPase = (t: TarjetaWallet) => ({
   accountName: t.nombre_completo,
-  loyaltyPoints: { label: "Sellos", balance: { string: `${t.sellos_actuales} de 8` } },
+  loyaltyPoints: { label: "Sellos", balance: { string: `${t.sellos_actuales} de ${META}` } },
 });
 
 function objetoPase(cfg: Config, enlace: string, t: TarjetaWallet, origen: string) {
@@ -63,13 +64,15 @@ function objetoPase(cfg: Config, enlace: string, t: TarjetaWallet, origen: strin
     state: "ACTIVE",
     ...datosPase(t),
     ...(usuario && {
-      barcode: { type: "QR_CODE", value: `DRP:${usuario}`, alternateText: `@${usuario}` },
+      barcode: { type: "QR_CODE", value: `${PREFIJO_QR}${usuario}`, alternateText: `@${usuario}` },
     }),
     textModulesData: [
       {
         id: "premios",
         header: "Premios",
-        body: "Sello 4: 50% off en tu próxima compra (tope $10.000). Sello 8: 2 galletas premium gratis.",
+        body: Object.entries(PREMIOS)
+          .map(([sello, premio]) => `Sello ${sello}: ${premio}.`)
+          .join(" "),
       },
     ],
     linksModuleData: {
@@ -85,11 +88,11 @@ async function asegurarClase(cfg: Config, token: string, origen: string) {
     headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
     body: JSON.stringify({
       id: `${cfg.issuer}.${CLASE}`,
-      issuerName: "Dulces del Rey Pirata",
+      issuerName: MARCA,
       programName: "Tarjeta de fidelidad",
       programLogo: {
         sourceUri: { uri: `${origen}/icon-512.png` },
-        contentDescription: { defaultValue: { language: "es", value: "Dulces del Rey Pirata" } },
+        contentDescription: { defaultValue: { language: "es", value: MARCA } },
       },
       hexBackgroundColor: "#160d07",
       reviewStatus: "UNDER_REVIEW",
@@ -135,12 +138,30 @@ export async function actualizarPase(cfg: Config, enlace: string, t: TarjetaWall
 }
 
 export async function leerTarjeta(enlace: string): Promise<TarjetaWallet | null> {
-  const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
-  const clave = process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+  const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
+  const clave =
+    process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !clave) throw new Error("Faltan variables de Supabase.");
   const { data } = await createClient(url, clave, { auth: { persistSession: false } }).rpc(
     "tarjeta_publica",
     { p_enlace: enlace },
   );
   return ((data as TarjetaWallet[] | null) ?? [])[0] ?? null;
+}
+
+// Mensaje dentro del pase (Google puede mostrarlo como notificación). 404 = nunca guardó el pase.
+export async function enviarMensajePase(
+  cfg: Config,
+  token: string,
+  enlace: string,
+  titulo: string,
+  texto: string,
+) {
+  const resp = await fetch(`${API}/loyaltyObject/${cfg.issuer}.${enlace}/addMessage`, {
+    method: "POST",
+    headers: { authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ message: { header: titulo, body: texto, messageType: "TEXT" } }),
+  });
+  if (!resp.ok && resp.status !== 404) console.error(`Mensaje de Wallet: ${resp.status}`);
+  return resp.ok;
 }

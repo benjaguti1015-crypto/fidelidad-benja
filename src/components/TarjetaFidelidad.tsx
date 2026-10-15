@@ -1,7 +1,5 @@
 import { CodigoQR, codigoQrDeInstagram } from "@/components/CodigoQR";
-
-const META = 8;
-const LINK_INSTAGRAM = "https://www.instagram.com/dulces.delreypirata/";
+import { LINK_INSTAGRAM, MARCA, META, PREMIOS } from "@/lib/marca";
 
 function Tesoro() {
   return (
@@ -39,7 +37,7 @@ export function TarjetaFidelidad({
       <header className="flex items-center gap-3">
         <img
           src="/logo.jpg"
-          alt="Logo Dulces del Rey Pirata"
+          alt={`Logo ${MARCA}`}
           className="h-12 w-12 rounded-full border border-primary/20 bg-cream object-contain p-0.5"
         />
         <h1 className="text-lg font-bold leading-tight text-primary">Dulces del Rey Pirata</h1>
@@ -49,7 +47,7 @@ export function TarjetaFidelidad({
         {Array.from({ length: META }).map((_, i) => {
           const numero = i + 1;
           const activo = i < activos;
-          const premio = numero === 4 || numero === 8;
+          const premio = numero in PREMIOS;
 
           return (
             <div
@@ -76,12 +74,11 @@ export function TarjetaFidelidad({
       </p>
 
       <ul className="mt-3 space-y-0.5 text-center text-xs text-muted-foreground">
-        <li>
-          <b className="text-primary">Sello 4:</b> 50% off en tu próxima compra (tope $10.000)
-        </li>
-        <li>
-          <b className="text-primary">Sello 8:</b> 2 galletas premium gratis
-        </li>
+        {Object.entries(PREMIOS).map(([sello, premio]) => (
+          <li key={sello}>
+            <b className="text-primary">Sello {sello}:</b> {premio}
+          </li>
+        ))}
       </ul>
 
       <div className="mt-5 flex items-end justify-between gap-3">

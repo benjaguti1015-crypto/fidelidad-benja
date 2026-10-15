@@ -89,7 +89,10 @@ function Privacidad() {
             <li>Crear tu tarjeta, sumar tus sellos y entregarte tus premios.</li>
             <li>Verificar tu cuenta de Instagram para validar los sellos.</li>
             <li>Saludarte en tu cumpleaños, si nos diste la fecha.</li>
-            <li>Enviarte avisos de promociones, solo si lo aceptaste.</li>
+            <li>
+              Enviarte avisos de promociones, solo si lo aceptaste. Si guardaste tu tarjeta en
+              Google Wallet, también podemos enviarte el aviso como mensaje en tu pase.
+            </li>
           </ul>
           <p>No vendemos tus datos ni los usamos para otros fines.</p>
         </Seccion>
@@ -111,6 +114,10 @@ function Privacidad() {
           <ul className="list-disc space-y-1 pl-5">
             <li>Supabase, donde se almacena la base de datos.</li>
             <li>Vercel, donde se aloja el sitio.</li>
+            <li>
+              Google Wallet, solo si decides guardar tu tarjeta ahí: recibe tu nombre, tus sellos y
+              el código de tu tarjeta.
+            </li>
             <li>
               Los servicios de notificaciones de tu navegador (Google, Apple o Mozilla, según tu
               dispositivo), si activas los avisos.

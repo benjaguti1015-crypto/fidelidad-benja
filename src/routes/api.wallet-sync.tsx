@@ -15,9 +15,9 @@ export const Route = createFileRoute("/api/wallet-sync")({
         const token = request.headers.get("authorization")?.replace(/^Bearer /i, "");
         if (!token) return json({ error: "Inicia sesión." }, 401);
 
-        const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
+        const url = process.env["SUPABASE_URL"] ?? process.env["VITE_SUPABASE_URL"];
         const clave =
-          process.env.SUPABASE_PUBLISHABLE_KEY ?? process.env.VITE_SUPABASE_PUBLISHABLE_KEY;
+          process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
         if (!url || !clave) return json({ error: "Faltan variables de Supabase." }, 500);
         const { data: usuario } = await createClient(url, clave, {
           auth: { persistSession: false },

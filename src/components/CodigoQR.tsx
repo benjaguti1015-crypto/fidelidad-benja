@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
+import { PREFIJO_QR } from "@/lib/marca";
 
 export function codigoQrDeInstagram(instagram: string) {
-  return `DRP:${instagram.trim().replace(/^@/, "").toLowerCase()}`;
+  return `${PREFIJO_QR}${instagram.trim().replace(/^@/, "").toLowerCase()}`;
 }
 
 export function CodigoQR({ valor, size = 132 }: { valor: string; size?: number }) {

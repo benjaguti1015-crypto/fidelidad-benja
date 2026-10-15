@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { MARCA, META } from "@/lib/marca";
 
 // Un manifest por tarjeta: así el ícono instalado abre directo la tarjeta de cada cliente.
 export const Route = createFileRoute("/api/manifest/$enlace")({
@@ -8,9 +9,9 @@ export const Route = createFileRoute("/api/manifest/$enlace")({
         if (!/^[\w-]{1,64}$/.test(params.enlace)) return new Response("Not found", { status: 404 });
 
         const manifest = {
-          name: "Dulces del Rey Pirata",
+          name: MARCA,
           short_name: "Rey Pirata",
-          description: "Tu tarjeta de fidelidad: junta 8 sellos y reclama tu tesoro.",
+          description: `Tu tarjeta de fidelidad: junta ${META} sellos y reclama tu tesoro.`,
           lang: "es",
           id: `/t/${params.enlace}`,
           start_url: `/t/${params.enlace}`,

@@ -6,6 +6,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
 import { EscanerQR } from "@/components/EscanerQR";
 import { EnviarAviso } from "@/components/EnviarAviso";
+import { esHoyCumpleanos } from "@/lib/fecha";
+import { META, PREFIJO_QR } from "@/lib/marca";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -38,6 +40,7 @@ type Cliente = {
   nombre_completo: string;
   enlace_unico: string;
   instagram: string | null;
+  cumpleanos: string | null;
   sellos: number;
 };
 
@@ -168,7 +171,9 @@ function Panel() {
     queryFn: async (): Promise<Cliente[]> => {
       const { data, error } = await supabase
         .from("clientes")
-        .select("id, nombre_completo, enlace_unico, instagram, fidelidad(sellos_actuales)")
+        .select(
+          "id, nombre_completo, enlace_unico, instagram, cumpleanos, fidelidad(sellos_actuales)",
+        )
         .order("nombre_completo");
       if (error) throw error;
       return (data ?? []).map((c) => {
@@ -179,6 +184,7 @@ function Panel() {
           nombre_completo: c.nombre_completo,
           enlace_unico: c.enlace_unico,
           instagram: c.instagram,
+          cumpleanos: c.cumpleanos,
           sellos: (fila as { sellos_actuales: number } | null)?.sellos_actuales ?? 0,
         };
       });
@@ -274,6 +280,11 @@ function Panel() {
     onSettled: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
   });
 
+  const cumpleaneros = useMemo(
+    () => clientes.filter((c) => esHoyCumpleanos(c.cumpleanos)),
+    [clientes],
+  );
+
   return (
     <main className="min-h-screen bg-background px-4 py-6">
       <div className="mx-auto w-full max-w-sm">
@@ -283,7 +294,13 @@ function Panel() {
             alt="Logo Dulces del Rey Pirata"
             className="h-10 w-10 rounded-full border border-primary/20"
           />
-          <h1 className="flex-1 text-lg leading-tight text-primary">Panel del Capitán</h1>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-lg leading-tight text-primary">Panel del Capitán</h1>
+            <p className="text-xs text-muted-foreground">
+              {clientes.length} clientes · {clientes.filter((c) => c.sellos === META).length} con
+              tarjeta completa
+            </p>
+          </div>
           <button
             onClick={async () => {
               await qc.cancelQueries();
@@ -347,6 +364,25 @@ function Panel() {
           </p>
         )}
 
+        {cumpleaneros.length > 0 && (
+          <div className="mt-3 rounded-2xl border border-gold bg-gold/20 px-4 py-3 text-sm text-primary">
+            <p className="font-semibold">🎂 Hoy está de cumpleaños:</p>
+            <ul className="mt-1 space-y-0.5">
+              {cumpleaneros.map((c) => (
+                <li key={c.id}>
+                  {c.nombre_completo}
+                  {c.instagram && (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      · @{c.instagram.replace(/^@/, "")}
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
         <details className="mt-4 rounded-2xl border border-primary/30 bg-card px-4 py-3">
           <summary className="cursor-pointer text-sm font-semibold text-primary">
             ＋ Nuevo cliente
@@ -377,7 +413,7 @@ function Panel() {
           </form>
         </details>
 
-        <EnviarAviso />
+        <EnviarAviso clientes={clientes} />
 
         <input
           value={busqueda}
@@ -447,7 +483,7 @@ function Panel() {
 
                 <div className="mt-1 flex items-center gap-2">
                   <div className="flex gap-1.5" aria-hidden>
-                    {Array.from({ length: 8 }).map((_, i) => (
+                    {Array.from({ length: META }).map((_, i) => (
                       <span
                         key={i}
                         className={`h-3 w-3 rounded-full border border-primary/60 ${
@@ -457,7 +493,8 @@ function Panel() {
                     ))}
                   </div>
                   <span className="text-sm text-muted-foreground">
-                    {sellos} de 8{sellos === 8 && " · ¡Tesoro completo!"}
+                    {sellos} de {META}
+                    {sellos === META && " · ¡Tesoro completo!"}
                   </span>
                 </div>
 
@@ -481,10 +518,10 @@ function Panel() {
                       setConfirmar({
                         cliente: c,
                         accion: "sumar",
-                        sellos: Math.min(8, sellos + 1),
+                        sellos: Math.min(META, sellos + 1),
                       })
                     }
-                    disabled={sellos === 8 || !acumulacionActiva}
+                    disabled={sellos === META || !acumulacionActiva}
                     className="h-11 flex-1 rounded-full bg-caramel font-semibold text-primary-foreground transition-transform active:scale-[0.98] disabled:opacity-40"
                   >
                     {acumulacionActiva ? "Sumar sello" : "Pausado"}
@@ -501,7 +538,11 @@ function Panel() {
           onCerrar={() => setEscaneando(false)}
           onLeer={(texto) => {
             setEscaneando(false);
-            const usuario = texto.trim().replace(/^DRP:/i, "").replace(/^@/, "").toLowerCase();
+            const usuario = texto
+              .trim()
+              .replace(new RegExp(`^${PREFIJO_QR}`, "i"), "")
+              .replace(/^@/, "")
+              .toLowerCase();
             const cliente = clientes.find(
               (c) => (c.instagram ?? "").replace(/^@/, "").toLowerCase() === usuario,
             );
@@ -513,8 +554,8 @@ function Panel() {
               setErrorSellos("Acumulación pausada por falta de stock temporal.");
               return;
             }
-            if (cliente.sellos >= 8) {
-              setErrorSellos(`${cliente.nombre_completo} ya completó sus 8 sellos.`);
+            if (cliente.sellos >= META) {
+              setErrorSellos(`${cliente.nombre_completo} ya completó sus ${META} sellos.`);
               return;
             }
             setConfirmar({ cliente, accion: "sumar", sellos: cliente.sellos + 1 });
@@ -560,7 +601,7 @@ function Panel() {
               Pirata: {confirmar.cliente.nombre_completo}
             </p>
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              {confirmar.sellos} de 8 sellos
+              {confirmar.sellos} de {META} sellos
             </p>
 
             <div className="mt-6 flex gap-3">
