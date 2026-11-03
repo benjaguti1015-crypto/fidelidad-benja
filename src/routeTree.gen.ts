@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as MiTarjetaRouteImport } from './routes/mi-tarjeta'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
 import { Route as RegistroRouteImport } from './routes/registro'
+import { Route as RelojRouteImport } from './routes/reloj'
 import { Route as ApiEnviarAvisoRouteImport } from './routes/api.enviar-aviso'
 import { Route as ApiWalletSyncRouteImport } from './routes/api.wallet-sync'
 import { Route as TEnlaceRouteImport } from './routes/t.$enlace'
@@ -37,6 +38,11 @@ const PrivacidadRoute = PrivacidadRouteImport.update({
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RelojRoute = RelojRouteImport.update({
+  id: '/reloj',
+  path: '/reloj',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiEnviarAvisoRoute = ApiEnviarAvisoRouteImport.update({
@@ -70,6 +76,7 @@ export interface FileRoutesByFullPath {
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
+  '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
@@ -81,6 +88,7 @@ export interface FileRoutesByTo {
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
+  '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
@@ -93,6 +101,7 @@ export interface FileRoutesById {
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
   '/registro': typeof RegistroRoute
+  '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
@@ -106,6 +115,7 @@ export interface FileRouteTypes {
     | '/mi-tarjeta'
     | '/privacidad'
     | '/registro'
+    | '/reloj'
     | '/api/enviar-aviso'
     | '/api/wallet-sync'
     | '/t/$enlace'
@@ -117,6 +127,7 @@ export interface FileRouteTypes {
     | '/mi-tarjeta'
     | '/privacidad'
     | '/registro'
+    | '/reloj'
     | '/api/enviar-aviso'
     | '/api/wallet-sync'
     | '/t/$enlace'
@@ -128,6 +139,7 @@ export interface FileRouteTypes {
     | '/mi-tarjeta'
     | '/privacidad'
     | '/registro'
+    | '/reloj'
     | '/api/enviar-aviso'
     | '/api/wallet-sync'
     | '/t/$enlace'
@@ -140,6 +152,7 @@ export interface RootRouteChildren {
   MiTarjetaRoute: typeof MiTarjetaRoute
   PrivacidadRoute: typeof PrivacidadRoute
   RegistroRoute: typeof RegistroRoute
+  RelojRoute: typeof RelojRoute
   ApiEnviarAvisoRoute: typeof ApiEnviarAvisoRoute
   ApiWalletSyncRoute: typeof ApiWalletSyncRoute
   TEnlaceRoute: typeof TEnlaceRoute
@@ -175,6 +188,13 @@ declare module '@tanstack/react-router' {
       path: '/registro'
       fullPath: '/registro'
       preLoaderRoute: typeof RegistroRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/reloj': {
+      id: '/reloj'
+      path: '/reloj'
+      fullPath: '/reloj'
+      preLoaderRoute: typeof RelojRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/enviar-aviso': {
@@ -220,6 +240,7 @@ const rootRouteChildren: RootRouteChildren = {
   MiTarjetaRoute: MiTarjetaRoute,
   PrivacidadRoute: PrivacidadRoute,
   RegistroRoute: RegistroRoute,
+  RelojRoute: RelojRoute,
   ApiEnviarAvisoRoute: ApiEnviarAvisoRoute,
   ApiWalletSyncRoute: ApiWalletSyncRoute,
   TEnlaceRoute: TEnlaceRoute,

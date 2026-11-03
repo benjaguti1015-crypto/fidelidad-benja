@@ -301,6 +301,12 @@ function Panel() {
               tarjeta completa
             </p>
           </div>
+          <a
+            href="/reloj"
+            className="rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary"
+          >
+            Juego
+          </a>
           <button
             onClick={async () => {
               await qc.cancelQueries();
