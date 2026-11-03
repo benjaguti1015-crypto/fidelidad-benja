@@ -217,11 +217,15 @@ export function JuegoReloj() {
           <img
             src="/logo.jpg"
             alt="Logo Dulces del Rey Pirata"
-            className="h-24 w-24 rounded-full border-4 object-cover md:h-32 md:w-32"
+            className={`rounded-full border-4 object-cover ${
+              fase === "inicio" ? "h-24 w-24 md:h-32 md:w-32" : "h-16 w-16 md:h-20 md:w-20"
+            }`}
             style={{ borderColor: C.durazno }}
           />
           <h1
-            className="mt-4 text-4xl leading-tight md:text-6xl"
+            className={`mt-4 leading-tight ${
+              fase === "inicio" ? "text-4xl md:text-6xl" : "text-3xl md:text-4xl"
+            }`}
             style={{ color: C.cafe }}
           >
             Para el reloj en 10.00
@@ -281,13 +285,13 @@ export function JuegoReloj() {
                 <p className="text-4xl font-bold md:text-6xl">{fraseDe(difSeg)}</p>
               )}
 
-              <p className="mt-6 text-[5rem] leading-none font-bold tabular-nums md:text-[9rem]">
+              <p className="mt-4 text-[5rem] leading-none font-bold tabular-nums md:text-[8rem]">
                 {formato(resultadoCs)}
               </p>
               <p className="mt-2 text-2xl md:text-3xl">
                 Diferencia:{" "}
                 <span className="font-bold tabular-nums">
-                  {resultadoCs >= META_CS ? "+" : "−"}
+                  {resultadoCs > META_CS ? "+" : resultadoCs < META_CS ? "−" : ""}
                   {difSeg.toFixed(2)} s
                 </span>
               </p>
