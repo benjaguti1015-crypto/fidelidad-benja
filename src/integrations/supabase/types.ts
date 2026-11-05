@@ -94,6 +94,69 @@ export type Database = {
           },
         ];
       };
+      puntos_venta: {
+        Row: {
+          activo: boolean;
+          codigo: string;
+          created_at: string;
+          id: string;
+          nombre: string;
+        };
+        Insert: {
+          activo?: boolean;
+          codigo?: string;
+          created_at?: string;
+          id?: string;
+          nombre: string;
+        };
+        Update: {
+          activo?: boolean;
+          codigo?: string;
+          created_at?: string;
+          id?: string;
+          nombre?: string;
+        };
+        Relationships: [];
+      };
+      sellos_qr: {
+        Row: {
+          cliente_id: string;
+          created_at: string;
+          fecha: string;
+          id: string;
+          punto_id: string;
+        };
+        Insert: {
+          cliente_id: string;
+          created_at?: string;
+          fecha: string;
+          id?: string;
+          punto_id: string;
+        };
+        Update: {
+          cliente_id?: string;
+          created_at?: string;
+          fecha?: string;
+          id?: string;
+          punto_id?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "sellos_qr_cliente_id_fkey";
+            columns: ["cliente_id"];
+            isOneToOne: false;
+            referencedRelation: "clientes";
+            referencedColumns: ["id"];
+          },
+          {
+            foreignKeyName: "sellos_qr_punto_id_fkey";
+            columns: ["punto_id"];
+            isOneToOne: false;
+            referencedRelation: "puntos_venta";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       suscripciones_push: {
         Row: {
           auth: string;
@@ -160,6 +223,10 @@ export type Database = {
       registro_publico: {
         Args: { p_cumpleanos?: string | null; p_instagram: string; p_nombre: string };
         Returns: string;
+      };
+      sello_por_qr: {
+        Args: { p_codigo: string; p_enlace: string };
+        Returns: number;
       };
       tarjeta_publica: {
         Args: { p_enlace: string };

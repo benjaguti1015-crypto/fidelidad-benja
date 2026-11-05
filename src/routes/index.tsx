@@ -302,6 +302,12 @@ function Panel() {
             </p>
           </div>
           <a
+            href="/puntos"
+            className="rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary"
+          >
+            Puntos
+          </a>
+          <a
             href="/reloj"
             className="rounded-lg border border-primary/40 px-3 py-1.5 text-xs font-semibold text-primary"
           >

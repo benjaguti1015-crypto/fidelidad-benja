@@ -7,8 +7,9 @@ import { Terminos } from "@/components/Terminos";
 import { ActivarAvisos } from "@/components/ActivarAvisos";
 import { BotonWallet } from "@/components/BotonWallet";
 import { CampoCumpleanos } from "@/components/CampoCumpleanos";
+import { EscanerQR } from "@/components/EscanerQR";
 import { esHoyCumpleanos } from "@/lib/fecha";
-import { MARCA } from "@/lib/marca";
+import { MARCA, PREFIJO_PUNTO } from "@/lib/marca";
 
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
@@ -52,6 +53,11 @@ function VistaCliente() {
   const [fechaCumple, setFechaCumple] = useState<string | null>(null);
   const [guardandoCumple, setGuardandoCumple] = useState(false);
   const [errorCumple, setErrorCumple] = useState<string | null>(null);
+
+  // Sello por QR del punto de venta
+  const [escaneandoLocal, setEscaneandoLocal] = useState(false);
+  const [sumandoSello, setSumandoSello] = useState(false);
+  const [avisoSello, setAvisoSello] = useState<{ ok: boolean; texto: string } | null>(null);
 
   useEffect(() => {
     localStorage.setItem("tarjeta_enlace", enlace);
@@ -123,6 +129,37 @@ function VistaCliente() {
     setMostrarModalCumple(false);
     setFechaCumple(null);
     await refetch();
+  };
+
+  const sumarSelloConQr = async (texto: string) => {
+    setEscaneandoLocal(false);
+    const codigo = texto.trim().startsWith(PREFIJO_PUNTO)
+      ? texto.trim().slice(PREFIJO_PUNTO.length)
+      : "";
+    if (!codigo) {
+      setAvisoSello({ ok: false, texto: "Ese QR no es de un punto de venta Rey Pirata." });
+      return;
+    }
+    setSumandoSello(true);
+    setAvisoSello(null);
+    try {
+      const resp = await fetch("/api/sello-qr", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ enlace, codigo }),
+      });
+      const cuerpo = (await resp.json().catch(() => ({}))) as { error?: string };
+      setAvisoSello(
+        resp.ok
+          ? { ok: true, texto: "¡Sello sumado! 🍪 Gracias por tu compra." }
+          : { ok: false, texto: cuerpo.error ?? "No pudimos sumar el sello. Inténtalo de nuevo." },
+      );
+      if (resp.ok) await refetch();
+    } catch {
+      setAvisoSello({ ok: false, texto: "Sin conexión. Inténtalo de nuevo." });
+    } finally {
+      setSumandoSello(false);
+    }
   };
 
   const cerrarRecien = () => {
@@ -203,6 +240,31 @@ function VistaCliente() {
             instagram={data.instagram}
           />
 
+          <button
+            type="button"
+            onClick={() => {
+              setAvisoSello(null);
+              setEscaneandoLocal(true);
+            }}
+            disabled={sumandoSello}
+            className="w-full rounded-xl bg-caramel px-4 py-3.5 text-base font-bold text-primary-foreground shadow transition-transform active:scale-[0.98] disabled:opacity-60"
+          >
+            {sumandoSello ? "Sumando sello…" : "📷 Escanear QR del local y sumar sello"}
+          </button>
+
+          {avisoSello && (
+            <p
+              role="status"
+              className={`w-full rounded-2xl border px-4 py-3 text-center text-sm font-semibold animate-fade-in ${
+                avisoSello.ok
+                  ? "border-gold bg-gold/20 text-primary"
+                  : "border-destructive/50 bg-destructive/10 text-destructive"
+              }`}
+            >
+              {avisoSello.texto}
+            </p>
+          )}
+
           {!recien && <BotonWhatsApp onClick={enviarWhatsApp} />}
 
           {!instalada && !recien && (
@@ -224,6 +286,14 @@ function VistaCliente() {
             Política de privacidad
           </a>
         </div>
+      )}
+
+      {escaneandoLocal && (
+        <EscanerQR
+          instruccion="Apunta al QR del punto de venta para sumar tu sello."
+          onLeer={sumarSelloConQr}
+          onCerrar={() => setEscaneandoLocal(false)}
+        />
       )}
 
       {/* MODAL CUMPLEAÑOS (Para clientes existentes) */}

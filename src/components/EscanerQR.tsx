@@ -5,9 +5,11 @@ const ELEMENT_ID = "lector-qr-pirata";
 export function EscanerQR({
   onLeer,
   onCerrar,
+  instruccion = "Apunta al código QR de la tarjeta del cliente.",
 }: {
   onLeer: (texto: string) => void;
   onCerrar: () => void;
+  instruccion?: string;
 }) {
   const [error, setError] = useState<string | null>(null);
   const leidoRef = useRef(false);
@@ -53,9 +55,7 @@ export function EscanerQR({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-primary/70 px-4">
       <div className="w-full max-w-xs rounded-3xl border-2 border-primary/70 bg-card p-5 shadow-card">
         <p className="text-center text-lg font-semibold text-primary">Escanear QR</p>
-        <p className="mt-1 text-center text-xs text-muted-foreground">
-          Apunta al código QR de la tarjeta del cliente.
-        </p>
+        <p className="mt-1 text-center text-xs text-muted-foreground">{instruccion}</p>
 
         <div
           id={ELEMENT_ID}

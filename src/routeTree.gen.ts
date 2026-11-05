@@ -12,9 +12,11 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as MiTarjetaRouteImport } from './routes/mi-tarjeta'
 import { Route as PrivacidadRouteImport } from './routes/privacidad'
+import { Route as PuntosRouteImport } from './routes/puntos'
 import { Route as RegistroRouteImport } from './routes/registro'
 import { Route as RelojRouteImport } from './routes/reloj'
 import { Route as ApiEnviarAvisoRouteImport } from './routes/api.enviar-aviso'
+import { Route as ApiSelloQrRouteImport } from './routes/api.sello-qr'
 import { Route as ApiWalletSyncRouteImport } from './routes/api.wallet-sync'
 import { Route as TEnlaceRouteImport } from './routes/t.$enlace'
 import { Route as ApiManifestEnlaceRouteImport } from './routes/api.manifest.$enlace'
@@ -35,6 +37,11 @@ const PrivacidadRoute = PrivacidadRouteImport.update({
   path: '/privacidad',
   getParentRoute: () => rootRouteImport,
 } as any)
+const PuntosRoute = PuntosRouteImport.update({
+  id: '/puntos',
+  path: '/puntos',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RegistroRoute = RegistroRouteImport.update({
   id: '/registro',
   path: '/registro',
@@ -48,6 +55,11 @@ const RelojRoute = RelojRouteImport.update({
 const ApiEnviarAvisoRoute = ApiEnviarAvisoRouteImport.update({
   id: '/api/enviar-aviso',
   path: '/api/enviar-aviso',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ApiSelloQrRoute = ApiSelloQrRouteImport.update({
+  id: '/api/sello-qr',
+  path: '/api/sello-qr',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ApiWalletSyncRoute = ApiWalletSyncRouteImport.update({
@@ -75,9 +87,11 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
+  '/puntos': typeof PuntosRoute
   '/registro': typeof RegistroRoute
   '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/sello-qr': typeof ApiSelloQrRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
@@ -87,9 +101,11 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
+  '/puntos': typeof PuntosRoute
   '/registro': typeof RegistroRoute
   '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/sello-qr': typeof ApiSelloQrRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
@@ -100,9 +116,11 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/mi-tarjeta': typeof MiTarjetaRoute
   '/privacidad': typeof PrivacidadRoute
+  '/puntos': typeof PuntosRoute
   '/registro': typeof RegistroRoute
   '/reloj': typeof RelojRoute
   '/api/enviar-aviso': typeof ApiEnviarAvisoRoute
+  '/api/sello-qr': typeof ApiSelloQrRoute
   '/api/wallet-sync': typeof ApiWalletSyncRoute
   '/t/$enlace': typeof TEnlaceRoute
   '/api/manifest/$enlace': typeof ApiManifestEnlaceRoute
@@ -114,9 +132,11 @@ export interface FileRouteTypes {
     | '/'
     | '/mi-tarjeta'
     | '/privacidad'
+    | '/puntos'
     | '/registro'
     | '/reloj'
     | '/api/enviar-aviso'
+    | '/api/sello-qr'
     | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
@@ -126,9 +146,11 @@ export interface FileRouteTypes {
     | '/'
     | '/mi-tarjeta'
     | '/privacidad'
+    | '/puntos'
     | '/registro'
     | '/reloj'
     | '/api/enviar-aviso'
+    | '/api/sello-qr'
     | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
@@ -138,9 +160,11 @@ export interface FileRouteTypes {
     | '/'
     | '/mi-tarjeta'
     | '/privacidad'
+    | '/puntos'
     | '/registro'
     | '/reloj'
     | '/api/enviar-aviso'
+    | '/api/sello-qr'
     | '/api/wallet-sync'
     | '/t/$enlace'
     | '/api/manifest/$enlace'
@@ -151,9 +175,11 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   MiTarjetaRoute: typeof MiTarjetaRoute
   PrivacidadRoute: typeof PrivacidadRoute
+  PuntosRoute: typeof PuntosRoute
   RegistroRoute: typeof RegistroRoute
   RelojRoute: typeof RelojRoute
   ApiEnviarAvisoRoute: typeof ApiEnviarAvisoRoute
+  ApiSelloQrRoute: typeof ApiSelloQrRoute
   ApiWalletSyncRoute: typeof ApiWalletSyncRoute
   TEnlaceRoute: typeof TEnlaceRoute
   ApiManifestEnlaceRoute: typeof ApiManifestEnlaceRoute
@@ -183,6 +209,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PrivacidadRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/puntos': {
+      id: '/puntos'
+      path: '/puntos'
+      fullPath: '/puntos'
+      preLoaderRoute: typeof PuntosRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/registro': {
       id: '/registro'
       path: '/registro'
@@ -202,6 +235,13 @@ declare module '@tanstack/react-router' {
       path: '/api/enviar-aviso'
       fullPath: '/api/enviar-aviso'
       preLoaderRoute: typeof ApiEnviarAvisoRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/api/sello-qr': {
+      id: '/api/sello-qr'
+      path: '/api/sello-qr'
+      fullPath: '/api/sello-qr'
+      preLoaderRoute: typeof ApiSelloQrRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/api/wallet-sync': {
@@ -239,9 +279,11 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   MiTarjetaRoute: MiTarjetaRoute,
   PrivacidadRoute: PrivacidadRoute,
+  PuntosRoute: PuntosRoute,
   RegistroRoute: RegistroRoute,
   RelojRoute: RelojRoute,
   ApiEnviarAvisoRoute: ApiEnviarAvisoRoute,
+  ApiSelloQrRoute: ApiSelloQrRoute,
   ApiWalletSyncRoute: ApiWalletSyncRoute,
   TEnlaceRoute: TEnlaceRoute,
   ApiManifestEnlaceRoute: ApiManifestEnlaceRoute,

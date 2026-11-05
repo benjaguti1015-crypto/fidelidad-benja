@@ -19,3 +19,6 @@ export const AVISO_LLEGADA = {
   titulo: "¡Ya llegaron las galletas! 🍪",
   texto: "Estamos en la UBB con galletas frescas. ¡Pasa con tu tarjeta y suma tu sello!",
 };
+
+// Prefijo del QR impreso de cada punto de venta (lo escanea el cliente desde su tarjeta).
+export const PREFIJO_PUNTO = "DRP-LOCAL:";
