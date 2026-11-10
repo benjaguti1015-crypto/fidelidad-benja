@@ -6,8 +6,6 @@ const CIEGO_DESDE_MS = 3000; // a los 3.00 s se ocultan los números
 const MAX_RANKING = 5;
 const MAX_APODO = 12;
 const CLAVE_RANKING = "reloj10-ranking";
-// Modo video: con /reloj?video el resultado siempre es 10.00 (para grabar). Sin el parámetro, juego normal.
-const PARAMETRO_VIDEO = "video";
 
 // Frases según la diferencia (en segundos). Se usa la primera cuyo "hasta" sea mayor a la diferencia.
 const FRASES: { hasta: number; texto: string }[] = [
@@ -81,11 +79,9 @@ export function JuegoReloj() {
   const inicioRef = useRef(0);
   const finRef = useRef(0);
   const rafRef = useRef(0);
-  const modoVideoRef = useRef(false);
 
   useEffect(() => {
     setRanking(leerRanking());
-    modoVideoRef.current = new URLSearchParams(window.location.search).has(PARAMETRO_VIDEO);
   }, []);
 
   const cambiarFase = (f: Fase) => {
@@ -120,7 +116,7 @@ export function JuegoReloj() {
     const ms = performance.now() - inicioRef.current;
     cancelAnimationFrame(rafRef.current);
     finRef.current = performance.now();
-    setResultadoCs(modoVideoRef.current ? META_CS : Math.floor(ms / 10));
+    setResultadoCs(Math.floor(ms / 10));
     cambiarFase("resultado");
   }, []);
 
