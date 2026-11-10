@@ -6,8 +6,26 @@ const CIEGO_DESDE_MS = 3000; // a los 3.00 s se ocultan los números
 const MAX_RANKING = 5;
 const MAX_APODO = 12;
 const CLAVE_RANKING = "reloj10-ranking";
-// Modo video: con /reloj?video el resultado siempre es 10.00 (para grabar). Sin el parámetro, juego normal.
+// Modo video (para grabar): entrar una vez a /reloj?video deja el resultado siempre en 10.00.
+// La dirección vuelve a verse como /reloj y el modo dura mientras la pestaña siga abierta.
+// Para apagarlo: cerrar la pestaña o entrar a /reloj?normal.
 const PARAMETRO_VIDEO = "video";
+const PARAMETRO_NORMAL = "normal";
+const CLAVE_VIDEO = "reloj10-video";
+
+function leerModoVideo(): boolean {
+  try {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has(PARAMETRO_VIDEO)) sessionStorage.setItem(CLAVE_VIDEO, "1");
+    if (params.has(PARAMETRO_NORMAL)) sessionStorage.removeItem(CLAVE_VIDEO);
+    if (params.has(PARAMETRO_VIDEO) || params.has(PARAMETRO_NORMAL)) {
+      window.history.replaceState(window.history.state, "", window.location.pathname);
+    }
+    return sessionStorage.getItem(CLAVE_VIDEO) === "1";
+  } catch {
+    return false;
+  }
+}
 
 // Frases según la diferencia (en segundos). Se usa la primera cuyo "hasta" sea mayor a la diferencia.
 const FRASES: { hasta: number; texto: string }[] = [
@@ -85,7 +103,7 @@ export function JuegoReloj() {
 
   useEffect(() => {
     setRanking(leerRanking());
-    modoVideoRef.current = new URLSearchParams(window.location.search).has(PARAMETRO_VIDEO);
+    modoVideoRef.current = leerModoVideo();
   }, []);
 
   const cambiarFase = (f: Fase) => {
