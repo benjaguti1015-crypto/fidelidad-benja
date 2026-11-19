@@ -21,6 +21,7 @@ export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Panel Pirata | Dulces del Rey Pirata" },
+      { name: "robots", content: "noindex, nofollow" },
       {
         name: "description",
         content:

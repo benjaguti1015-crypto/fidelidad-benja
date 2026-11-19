@@ -14,6 +14,8 @@ import { MARCA, programaDe } from "@/lib/marca";
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
     meta: [
+      { title: "Mi tarjeta | Dulces del Rey Pirata" },
+      { name: "robots", content: "noindex, nofollow" },
       { name: "theme-color", content: "#160d07" },
       { name: "apple-mobile-web-app-capable", content: "yes" },
       { name: "apple-mobile-web-app-title", content: "Rey Pirata" },
@@ -97,6 +99,17 @@ function VistaCliente() {
   });
 
   const programa = programaDe(data?.programa);
+
+  // Escape cierra los modales (teclado).
+  useEffect(() => {
+    const cerrar = (e: KeyboardEvent) => {
+      if (e.key !== "Escape") return;
+      setMostrarModalCumple(false);
+      setMostrarAyudaInstalacion(false);
+    };
+    window.addEventListener("keydown", cerrar);
+    return () => window.removeEventListener("keydown", cerrar);
+  }, []);
 
   // Evaluar si falta el cumpleaños al cargar la tarjeta (en Concepción ya se preguntó al registrarse)
   useEffect(() => {

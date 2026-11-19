@@ -73,13 +73,14 @@ export function TarjetaWallet({
             return (
               <div
                 key={i}
+                role="img"
                 aria-label={`Sello ${numero} ${activo ? "marcado" : "pendiente"}${premio ? " (premio)" : ""}`}
                 className={`mx-auto flex h-10 w-10 items-center justify-center rounded-full border text-sm font-extrabold ${
                   activo
                     ? "animate-fade-in border-yellow-200 bg-gradient-to-br from-yellow-300 via-amber-400 to-amber-600 text-amber-950 shadow-[0_3px_10px_rgba(217,119,6,0.4),inset_0_2px_4px_rgba(255,255,255,0.7)]"
                     : premio
                       ? "border-amber-500/70 bg-amber-500/10 text-amber-400"
-                      : "border-primary/30 bg-cream text-primary/40"
+                      : "border-primary/30 bg-cream text-muted-foreground"
                 }`}
               >
                 {premio ? <Tesoro /> : activo ? "🪙" : numero}

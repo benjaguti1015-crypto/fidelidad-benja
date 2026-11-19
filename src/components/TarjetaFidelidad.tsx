@@ -52,6 +52,7 @@ export function TarjetaFidelidad({
           return (
             <div
               key={i}
+              role="img"
               aria-label={`Sello ${numero} ${activo ? "marcado" : "pendiente"}${premio ? " (premio)" : ""}`}
               className={`mx-auto flex h-12 w-12 items-center justify-center rounded-full border-2 text-base font-extrabold ${
                 activo
