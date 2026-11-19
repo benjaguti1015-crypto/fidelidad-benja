@@ -98,7 +98,7 @@ BEGIN
 
   SELECT c.acumulacion_activa INTO v_activa FROM public.configuracion c LIMIT 1;
   IF p_delta = 1 AND COALESCE(v_activa, true) = false THEN
-    RAISE EXCEPTION 'Acumulación de sellos pausada por falta de stock temporal';
+    RAISE EXCEPTION 'Acumulación de sellos pausada';
   END IF;
 
   INSERT INTO public.fidelidad (cliente_id, sellos_actuales)
