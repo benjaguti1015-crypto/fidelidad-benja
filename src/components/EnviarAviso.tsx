@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { esHoyCumpleanos } from "@/lib/fecha";
-import { AVISO_LLEGADA, META, PREMIOS } from "@/lib/marca";
+import { AVISO_LLEGADA, PROGRAMAS, type Programa } from "@/lib/marca";
 
 const campo =
   "w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary";
@@ -13,7 +13,12 @@ export type ClienteAviso = {
   instagram: string | null;
   cumpleanos: string | null;
   sellos: number;
+  programa: Programa;
+  acepta_avisos: boolean;
 };
+
+// Concepción: solo quien marcó «Deseo recibir notificaciones y promociones».
+const aceptaPromos = (c: ClienteAviso) => c.programa !== "concepcion" || c.acepta_avisos;
 
 const CANALES = {
   app: "🔔 Avisos de la app",
@@ -32,8 +37,9 @@ type Grupo = keyof typeof GRUPOS;
 
 function enGrupo(grupo: Grupo, c: ClienteAviso) {
   if (grupo === "cumple") return esHoyCumpleanos(c.cumpleanos);
-  if (grupo === "premio") return Boolean(PREMIOS[c.sellos + 1]);
-  if (grupo === "completa") return c.sellos === META;
+  const { meta, premios } = PROGRAMAS[c.programa];
+  if (grupo === "premio") return Boolean(premios[c.sellos + 1]);
+  if (grupo === "completa") return c.sellos === meta;
   return true;
 }
 
@@ -59,9 +65,13 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
     refetchInterval: 30000,
   });
 
-  const conApp = useMemo(() => clientes.filter((c) => conAvisos.has(c.id)), [clientes, conAvisos]);
+  const permitidos = useMemo(() => clientes.filter(aceptaPromos), [clientes]);
+  const conApp = useMemo(
+    () => permitidos.filter((c) => conAvisos.has(c.id)),
+    [permitidos, conAvisos],
+  );
   // Wallet: no sabemos quién guardó el pase, así que se intenta con todos los del grupo.
-  const universo = canal === "app" ? conApp : clientes;
+  const universo = canal === "app" ? conApp : permitidos;
   const destinatarios =
     grupo === "elegir"
       ? universo.filter((c) => elegidos.has(c.id))
@@ -184,7 +194,8 @@ export function EnviarAviso({ clientes }: { clientes: ClienteAviso[] }) {
           <p className="mt-1 text-xs text-muted-foreground">
             {canal === "app"
               ? "Llega como notificación a quien activó los avisos en su tarjeta."
-              : "Se intenta con todos los del grupo; solo lo recibe quien guardó su pase en Wallet."}
+              : "Se intenta con todos los del grupo; solo lo recibe quien guardó su pase en Wallet."}{" "}
+            Los clientes de Concepción sin permiso de promociones no aparecen.
           </p>
         </fieldset>
 

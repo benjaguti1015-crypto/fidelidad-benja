@@ -1,7 +1,7 @@
 import { CodigoQR, codigoQrDeInstagram } from "@/components/CodigoQR";
 import { LINK_INSTAGRAM, MARCA, META, PREMIOS } from "@/lib/marca";
 
-function Tesoro() {
+export function Tesoro() {
   return (
     <svg
       viewBox="0 0 24 24"

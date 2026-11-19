@@ -24,11 +24,16 @@ export const Route = createFileRoute("/api/wallet-sync")({
         }).auth.getUser(token);
         if (!usuario.user) return json({ error: "Sesión no válida." }, 401);
 
-        const { configWallet, leerTarjeta, actualizarPase } = await import("@/lib/wallet.server");
+        const { configWallet, leerTarjeta, actualizarPase, enviarMensajePase, tokenApi } =
+          await import("@/lib/wallet.server");
+        const { PROGRAMAS, programaDe } = await import("@/lib/marca");
         const cfg = configWallet();
         if (!cfg) return json({ actualizado: false });
 
-        const cuerpo = (await request.json().catch(() => null)) as { enlace?: unknown } | null;
+        const cuerpo = (await request.json().catch(() => null)) as {
+          enlace?: unknown;
+          sumado?: unknown;
+        } | null;
         const enlace = typeof cuerpo?.enlace === "string" ? cuerpo.enlace : "";
         if (!/^[\w-]{1,64}$/.test(enlace)) return json({ error: "Enlace no válido." }, 400);
 
@@ -36,6 +41,22 @@ export const Route = createFileRoute("/api/wallet-sync")({
           const tarjeta = await leerTarjeta(enlace);
           if (!tarjeta) return json({ actualizado: false });
           const actualizado = await actualizarPase(cfg, enlace, tarjeta);
+          // Concepción: al llegar a un premio se avisa en el pase (aviso de su tarjeta, no promo).
+          const premio = PROGRAMAS.concepcion.premios[tarjeta.sellos_actuales];
+          if (
+            actualizado &&
+            cuerpo?.sumado === true &&
+            programaDe(tarjeta.programa) === "concepcion" &&
+            premio
+          ) {
+            await enviarMensajePase(
+              cfg,
+              await tokenApi(cfg),
+              enlace,
+              "¡Ganaste un premio! 🍪",
+              `Llegaste al sello ${tarjeta.sellos_actuales}: ${premio}. Pídelo en tu próxima compra.`,
+            );
+          }
           console.log(`wallet-sync: ${tarjeta.sellos_actuales} sellos, actualizado=${actualizado}`);
           return json({ actualizado, sellos: tarjeta.sellos_actuales });
         } catch (e) {

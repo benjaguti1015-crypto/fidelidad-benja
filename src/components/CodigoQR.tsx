@@ -5,6 +5,11 @@ export function codigoQrDeInstagram(instagram: string) {
   return `${PREFIJO_QR}${instagram.trim().replace(/^@/, "").toLowerCase()}`;
 }
 
+// Clientes sin Instagram (Concepción): el QR lleva el código único de su tarjeta.
+export function codigoQrDeEnlace(enlace: string) {
+  return `${PREFIJO_QR}${enlace}`;
+}
+
 export function CodigoQR({ valor, size = 132 }: { valor: string; size?: number }) {
   const [url, setUrl] = useState<string | null>(null);
 

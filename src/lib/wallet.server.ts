@@ -1,11 +1,12 @@
 import { createSign } from "node:crypto";
 import { createClient } from "@supabase/supabase-js";
-import { MARCA, META, PREFIJO_QR, PREMIOS } from "./marca";
+import { MARCA, PREFIJO_QR, PROGRAMAS, programaDe } from "./marca";
 
 const API = "https://walletobjects.googleapis.com/walletobjects/v1";
 const CLASE = "pirata_fidelidad";
 
 export type TarjetaWallet = {
+  programa: string;
   nombre_completo: string;
   sellos_actuales: number;
   instagram: string | null;
@@ -53,24 +54,36 @@ export async function tokenApi(cfg: Config) {
 
 const datosPase = (t: TarjetaWallet) => ({
   accountName: t.nombre_completo,
-  loyaltyPoints: { label: "Sellos", balance: { string: `${t.sellos_actuales} de ${META}` } },
+  loyaltyPoints: {
+    label: "Sellos",
+    balance: { string: `${t.sellos_actuales} de ${PROGRAMAS[programaDe(t.programa)].meta}` },
+  },
 });
 
-function objetoPase(cfg: Config, enlace: string, t: TarjetaWallet, origen: string) {
+// Universidad: QR con el Instagram (como siempre). Concepción: QR con el código de la tarjeta.
+function codigoBarras(enlace: string, t: TarjetaWallet) {
+  if (programaDe(t.programa) === "concepcion") {
+    return { type: "QR_CODE", value: `${PREFIJO_QR}${enlace}` };
+  }
   const usuario = t.instagram?.trim().replace(/^@/, "").toLowerCase();
+  return usuario
+    ? { type: "QR_CODE", value: `${PREFIJO_QR}${usuario}`, alternateText: `@${usuario}` }
+    : null;
+}
+
+function objetoPase(cfg: Config, enlace: string, t: TarjetaWallet, origen: string) {
+  const barcode = codigoBarras(enlace, t);
   return {
     id: `${cfg.issuer}.${enlace}`,
     classId: `${cfg.issuer}.${CLASE}`,
     state: "ACTIVE",
     ...datosPase(t),
-    ...(usuario && {
-      barcode: { type: "QR_CODE", value: `${PREFIJO_QR}${usuario}`, alternateText: `@${usuario}` },
-    }),
+    ...(barcode && { barcode }),
     textModulesData: [
       {
         id: "premios",
         header: "Premios",
-        body: Object.entries(PREMIOS)
+        body: Object.entries(PROGRAMAS[programaDe(t.programa)].premios)
           .map(([sello, premio]) => `Sello ${sello}: ${premio}.`)
           .join(" "),
       },
@@ -143,7 +156,7 @@ export async function leerTarjeta(enlace: string): Promise<TarjetaWallet | null>
     process.env["SUPABASE_PUBLISHABLE_KEY"] ?? process.env["VITE_SUPABASE_PUBLISHABLE_KEY"];
   if (!url || !clave) throw new Error("Faltan variables de Supabase.");
   const { data } = await createClient(url, clave, { auth: { persistSession: false } }).rpc(
-    "tarjeta_publica",
+    "tarjeta_detalle",
     { p_enlace: enlace },
   );
   return ((data as TarjetaWallet[] | null) ?? [])[0] ?? null;

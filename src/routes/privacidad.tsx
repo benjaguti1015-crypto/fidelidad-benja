@@ -31,7 +31,7 @@ function Privacidad() {
       <article className="mx-auto w-full max-w-xl rounded-3xl border border-primary/30 bg-card p-6 shadow-card">
         <h1 className="text-2xl leading-tight text-primary">Política de privacidad</h1>
         <p className="mt-2 text-xs text-muted-foreground">
-          Última actualización: 13 de octubre de 2026
+          Última actualización: 19 de noviembre de 2026
         </p>
         <p className="mt-4 text-sm leading-relaxed text-muted-foreground">
           En Dulces del Rey Pirata cuidamos tus datos. Aquí te contamos qué guardamos, para qué y
@@ -65,12 +65,13 @@ function Privacidad() {
         <Seccion titulo="2. Qué datos guardamos">
           <ul className="list-disc space-y-1 pl-5">
             <li>Tu nombre y apellido.</li>
-            <li>Tu usuario de Instagram.</li>
+            <li>Tu correo electrónico (tarjetas creadas desde noviembre de 2026).</li>
+            <li>Tu usuario de Instagram (solo tarjetas del programa universitario).</li>
             <li>Tu fecha de cumpleaños, solo si decides darla.</li>
             <li>Tus sellos y premios, y un enlace único de tu tarjeta.</li>
             <li>
-              La fecha en que aceptaste estos términos y si aceptaste recibir avisos, como respaldo
-              de tu consentimiento.
+              La fecha en que aceptaste estos términos y si aceptaste recibir notificaciones y
+              promociones, como respaldo de tu consentimiento.
             </li>
             <li>
               Si activas los avisos: un identificador técnico de tu dispositivo, necesario para
@@ -87,21 +88,31 @@ function Privacidad() {
         <Seccion titulo="3. Para qué los usamos">
           <ul className="list-disc space-y-1 pl-5">
             <li>Crear tu tarjeta, sumar tus sellos y entregarte tus premios.</li>
-            <li>Verificar tu cuenta de Instagram para validar los sellos.</li>
+            <li>Identificar tu tarjeta con tu correo y ayudarte a recuperarla si la pierdes.</li>
+            <li>
+              Verificar tu cuenta de Instagram para validar los sellos (programa universitario).
+            </li>
             <li>Saludarte en tu cumpleaños, si nos diste la fecha.</li>
             <li>
-              Enviarte avisos de promociones, solo si lo aceptaste. Si guardaste tu tarjeta en
-              Google Wallet, también podemos enviarte el aviso como mensaje en tu pase.
+              Avisarte de tu propia tarjeta en Google Wallet, por ejemplo cuando ganas un premio.
             </li>
           </ul>
+          <p>
+            <b className="text-primary">Uso de tu correo para marketing.</b> Solo usaremos tu correo
+            para enviarte promociones si marcas la casilla «Deseo recibir notificaciones y
+            promociones» al registrarte (o si activas las notificaciones desde tu tarjeta). Si lo
+            aceptas, podemos enviarte correos y mensajes de promociones por notificaciones o en tu
+            pase de Google Wallet. Si no marcas la casilla, no te enviaremos publicidad.
+          </p>
           <p>No vendemos tus datos ni los usamos para otros fines.</p>
         </Seccion>
 
         <Seccion titulo="4. Tu consentimiento">
           <p>
             Tratamos tus datos porque nos das tu consentimiento al registrarte. Aceptar los términos
-            y esta política es necesario para tener tu tarjeta. Recibir notificaciones es opcional,
-            y puedes cambiar de opinión cuando quieras.
+            y esta política es necesario para tener tu tarjeta. Recibir notificaciones y promociones
+            es opcional, va en una casilla aparte que viene desmarcada, y puedes cambiar de opinión
+            cuando quieras.
           </p>
           <p>
             Si eres menor de 14 años, necesitas la autorización de tu madre, padre o tutor para
@@ -144,8 +155,9 @@ function Privacidad() {
           </p>
           <p>
             Escríbenos por correo o Instagram y respondemos tu solicitud en un plazo máximo de 30
-            días. Para dejar de recibir avisos también puedes desactivarlos en los permisos de tu
-            navegador.
+            días. Para dejar de recibir promociones por correo, respóndenos «baja» y te sacamos de
+            la lista. Para dejar de recibir avisos también puedes desactivarlos en los permisos de
+            tu navegador.
           </p>
           <p>
             Si crees que no respetamos tus derechos, puedes reclamar ante la autoridad de protección

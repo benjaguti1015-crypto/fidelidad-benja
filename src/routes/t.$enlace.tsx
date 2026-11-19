@@ -3,12 +3,13 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
+import { TarjetaWallet } from "@/components/TarjetaWallet";
 import { Terminos } from "@/components/Terminos";
 import { ActivarAvisos } from "@/components/ActivarAvisos";
 import { BotonWallet } from "@/components/BotonWallet";
 import { CampoCumpleanos } from "@/components/CampoCumpleanos";
 import { esHoyCumpleanos } from "@/lib/fecha";
-import { MARCA } from "@/lib/marca";
+import { MARCA, programaDe } from "@/lib/marca";
 
 export const Route = createFileRoute("/t/$enlace")({
   head: ({ params }) => ({
@@ -31,6 +32,8 @@ type PromptInstalar = Event & {
 };
 
 type Tarjeta = {
+  programa?: string;
+  premio_10_canjeado?: boolean;
   nombre_completo: string;
   sellos_actuales: number;
   instagram: string | null;
@@ -81,6 +84,9 @@ function VistaCliente() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["tarjeta", enlace],
     queryFn: async (): Promise<Tarjeta | null> => {
+      const detalle = await supabase.rpc("tarjeta_detalle", { p_enlace: enlace });
+      if (!detalle.error) return (detalle.data as Tarjeta[])?.[0] ?? null;
+      // Respaldo mientras la base no tenga tarjeta_detalle: la tarjeta antigua sigue funcionando.
       const { data, error } = await supabase.rpc("tarjeta_publica", { p_enlace: enlace });
       if (error) throw error;
       return (data as Tarjeta[])?.[0] ?? null;
@@ -90,9 +96,11 @@ function VistaCliente() {
     refetchOnWindowFocus: true,
   });
 
-  // Evaluar si falta el cumpleaños al cargar la tarjeta
+  const programa = programaDe(data?.programa);
+
+  // Evaluar si falta el cumpleaños al cargar la tarjeta (en Concepción ya se preguntó al registrarse)
   useEffect(() => {
-    if (data && !data.cumpleanos) {
+    if (data && !data.cumpleanos && programaDe(data.programa) === "universidad") {
       setMostrarModalCumple(true);
     } else if (data && data.cumpleanos) {
       setMostrarModalCumple(false);
@@ -197,11 +205,20 @@ function VistaCliente() {
             </p>
           )}
 
-          <TarjetaFidelidad
-            nombre={data.nombre_completo}
-            sellos={data.sellos_actuales}
-            instagram={data.instagram}
-          />
+          {programa === "concepcion" ? (
+            <TarjetaWallet
+              nombre={data.nombre_completo}
+              sellos={data.sellos_actuales}
+              enlace={enlace}
+              premio10Canjeado={data.premio_10_canjeado ?? false}
+            />
+          ) : (
+            <TarjetaFidelidad
+              nombre={data.nombre_completo}
+              sellos={data.sellos_actuales}
+              instagram={data.instagram}
+            />
+          )}
 
           {!recien && <BotonWhatsApp onClick={enviarWhatsApp} />}
 
@@ -215,10 +232,15 @@ function VistaCliente() {
             </button>
           )}
 
-          <ActivarAvisos enlace={enlace} ios={entorno.ios} instalada={instalada} />
+          <ActivarAvisos
+            enlace={enlace}
+            ios={entorno.ios}
+            instalada={instalada}
+            concepcion={programa === "concepcion"}
+          />
           <BotonWallet enlace={enlace} />
 
-          <Terminos className="w-full max-w-sm" />
+          <Terminos className="w-full max-w-sm" programa={programa} />
 
           <a href="/privacidad" className="text-xs text-muted-foreground underline">
             Política de privacidad

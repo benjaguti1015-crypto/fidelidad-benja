@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
 import {
   avisosConfigurados,
   avisosDisponibles,
@@ -12,10 +13,12 @@ export function ActivarAvisos({
   enlace,
   ios,
   instalada,
+  concepcion = false,
 }: {
   enlace: string;
   ios: boolean;
   instalada: boolean;
+  concepcion?: boolean;
 }) {
   const [estado, setEstado] = useState<Estado>("oculto");
 
@@ -40,7 +43,14 @@ export function ActivarAvisos({
       const sub = await pedirSuscripcion();
       if (sub === "denegado") return setEstado("bloqueado");
       if (!sub) return setEstado("oculto");
-      setEstado((await guardarSuscripcion(enlace, sub)) ? "activo" : "error");
+      const ok = await guardarSuscripcion(enlace, sub);
+      // Concepción: activar avisos desde la tarjeta cuenta como aceptar promociones.
+      if (ok && concepcion) {
+        await supabase
+          .rpc("aceptar_promociones", { p_enlace: enlace })
+          .then(({ error }) => error && console.error(error));
+      }
+      setEstado(ok ? "activo" : "error");
     } catch {
       setEstado("error");
     }
@@ -74,7 +84,9 @@ export function ActivarAvisos({
           ? "Activando…"
           : localStorage.getItem("avisos_aceptados")
             ? "🔔 Activa los avisos que aceptaste"
-            : "🔔 Activar avisos de promos"}
+            : concepcion
+              ? "🔔 Recibir notificaciones y promociones"
+              : "🔔 Activar avisos de promos"}
       </button>
       {estado === "error" && (
         <p className="mt-1 text-xs text-destructive">No pudimos activarlos. Inténtalo de nuevo.</p>

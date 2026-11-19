@@ -4,7 +4,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Terminos } from "@/components/Terminos";
 import { CampoCumpleanos, type EstadoCumple } from "@/components/CampoCumpleanos";
 import { guardarSuscripcion, pedirSuscripcion } from "@/lib/avisos";
-import { MARCA, META } from "@/lib/marca";
+import { MARCA, PROGRAMAS, SELLOS_BIENVENIDA } from "@/lib/marca";
+
+const META_C = PROGRAMAS.concepcion.meta;
 
 export const Route = createFileRoute("/registro")({
   head: () => ({
@@ -13,12 +15,12 @@ export const Route = createFileRoute("/registro")({
       {
         name: "description",
         content:
-          "Regístrate con tu nombre, tu usuario de Instagram y tu cumpleaños para recibir tu tarjeta de fidelidad pirata con 8 sellos.",
+          "Regístrate con tu nombre y tu correo y recibe tu tarjeta de fidelidad de 12 sellos: los 2 primeros van de regalo.",
       },
       { property: "og:title", content: "Únete a la tripulación | Dulces del Rey Pirata" },
       {
         property: "og:description",
-        content: "Crea tu tarjeta de fidelidad pirata en segundos y empieza a juntar sellos.",
+        content: "Crea tu tarjeta de fidelidad en segundos. Los 2 primeros sellos van de regalo.",
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -30,7 +32,8 @@ export const Route = createFileRoute("/registro")({
 function Registro() {
   const navigate = useNavigate();
   const [nombre, setNombre] = useState("");
-  const [instagram, setInstagram] = useState("");
+  const [apellido, setApellido] = useState("");
+  const [email, setEmail] = useState("");
   const [cumple, setCumple] = useState<{ fecha: string | null; estado: EstadoCumple }>({
     fecha: null,
     estado: "vacio",
@@ -68,12 +71,16 @@ function Registro() {
       setError("Para crear tu tarjeta debes aceptar los términos y la política de privacidad.");
       return;
     }
-    if (nombre.trim().length < 3) {
-      setError("Escribe tu nombre y apellido.");
+    if (nombre.trim().length < 2) {
+      setError("Escribe tu nombre.");
       return;
     }
-    if (instagram.trim().replace(/^@/, "").length < 2) {
-      setError("Déjanos tu usuario de Instagram.");
+    if (apellido.trim().length < 2) {
+      setError("Escribe tu apellido.");
+      return;
+    }
+    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())) {
+      setError("Revisa tu correo electrónico.");
       return;
     }
 
@@ -83,21 +90,23 @@ function Registro() {
     }
 
     setEnviando(true);
-    const { data, error: err } = await supabase.rpc("registro_publico", {
+    const { data, error: err } = await supabase.rpc("registro_concepcion", {
       p_nombre: nombre.trim(),
-      p_instagram: instagram.trim().replace(/^@/, ""),
+      p_apellido: apellido.trim(),
+      p_email: email.trim().toLowerCase(),
+      p_acepta_promos: quiereAvisos,
       p_cumpleanos: cumple.fecha,
     });
     setEnviando(false);
 
     if (err || !data) {
-      setError("No pudimos crear tu tarjeta. Inténtalo de nuevo.");
+      setError(
+        err?.message.includes("correo_registrado")
+          ? "Ese correo ya tiene una tarjeta. Búscala en «Ver mi tarjeta»."
+          : "No pudimos crear tu tarjeta. Inténtalo de nuevo.",
+      );
       return;
     }
-    // Respaldo del consentimiento; si falla no bloquea el registro.
-    await supabase
-      .rpc("registrar_consentimiento", { p_enlace: data as string, p_acepta_avisos: quiereAvisos })
-      .then(({ error: e }) => e && console.error(e));
     localStorage.setItem("tarjeta_enlace", data as string);
     sessionStorage.setItem("recien_registrado", "1");
     if (quiereAvisos) localStorage.setItem("avisos_aceptados", "1");
@@ -127,35 +136,57 @@ function Registro() {
           Únete a la tripulación
         </h1>
         <p className="mt-1 text-center text-sm text-muted-foreground">
-          Tu tarjeta de {META} sellos
+          Tu tarjeta de {META_C} sellos. ¡Los {SELLOS_BIENVENIDA} primeros van de regalo!
         </p>
 
-        <label className="mt-5 block text-sm font-semibold text-primary" htmlFor="nombre">
-          Nombre y apellido
-        </label>
-        <input
-          id="nombre"
-          required
-          maxLength={80}
-          autoComplete="name"
-          value={nombre}
-          onChange={(e) => setNombre(e.target.value)}
-          placeholder="Ej: Ana Pérez"
-          className={campo}
-        />
+        <div className="mt-5 grid grid-cols-2 gap-3">
+          <div>
+            <label className="block text-sm font-semibold text-primary" htmlFor="nombre">
+              Nombre
+            </label>
+            <input
+              id="nombre"
+              required
+              maxLength={40}
+              autoComplete="given-name"
+              value={nombre}
+              onChange={(e) => setNombre(e.target.value)}
+              placeholder="Ana"
+              className={campo}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-semibold text-primary" htmlFor="apellido">
+              Apellido
+            </label>
+            <input
+              id="apellido"
+              required
+              maxLength={40}
+              autoComplete="family-name"
+              value={apellido}
+              onChange={(e) => setApellido(e.target.value)}
+              placeholder="Pérez"
+              className={campo}
+            />
+          </div>
+        </div>
 
-        <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="instagram">
-          Usuario de Instagram
+        <label className="mt-4 block text-sm font-semibold text-primary" htmlFor="email">
+          Correo electrónico
         </label>
         <input
-          id="instagram"
+          id="email"
+          type="email"
           required
-          maxLength={50}
+          maxLength={120}
+          autoComplete="email"
           autoCapitalize="none"
           autoCorrect="off"
-          value={instagram}
-          onChange={(e) => setInstagram(e.target.value)}
-          placeholder="@tuusuario"
+          inputMode="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          placeholder="tucorreo@ejemplo.com"
           className={campo}
         />
 
@@ -170,7 +201,7 @@ function Registro() {
           Día, mes y año. Así te saludamos en tu día. 🎉
         </p>
 
-        <Terminos className="mt-5" />
+        <Terminos className="mt-5" programa="concepcion" />
 
         <label className="mt-4 flex cursor-pointer items-start gap-3 text-sm text-primary">
           <input
@@ -201,9 +232,9 @@ function Registro() {
             className="mt-0.5 h-5 w-5 shrink-0 accent-[oklch(0.8_0.13_82)]"
           />
           <span>
-            Quiero recibir avisos de promociones en mi celular.{" "}
+            Deseo recibir notificaciones y promociones.{" "}
             <span className="text-muted-foreground">
-              (Opcional. Puedes desactivarlos cuando quieras.)
+              (Opcional. Por correo, celular o Google Wallet. Puedes darte de baja cuando quieras.)
             </span>
             {quiereAvisos && permisoAvisos && (
               <span className="mt-1 block text-xs font-semibold" role="status">
@@ -220,7 +251,7 @@ function Registro() {
 
         <button
           type="submit"
-          disabled={enviando || !acepto || !nombre.trim() || !instagram.trim()}
+          disabled={enviando || !acepto || !nombre.trim() || !apellido.trim() || !email.trim()}
           className="mt-5 w-full rounded-xl bg-primary px-4 py-3 font-semibold text-primary-foreground transition-[transform,opacity] hover:opacity-90 active:scale-[0.97] disabled:opacity-60"
         >
           {enviando ? "Creando tarjeta…" : "Crear mi tarjeta"}

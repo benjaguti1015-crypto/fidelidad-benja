@@ -7,6 +7,12 @@ const json = (cuerpo: unknown, status = 200) =>
     headers: { "content-type": "application/json" },
   });
 
+type Destino = { enlace_unico: string; programa: string; acepta_avisos: boolean };
+
+// Los clientes de Concepción solo reciben promociones si marcaron la casilla al registrarse.
+const puedeRecibir = (c: Destino | null) =>
+  !c || c.programa !== "concepcion" || c.acepta_avisos === true;
+
 const esUuid = (v: unknown) =>
   typeof v === "string" &&
   /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(v);
@@ -73,16 +79,18 @@ export const Route = createFileRoute("/api/enviar-aviso")({
           endpoint: string;
           p256dh: string;
           auth: string;
-          clientes: { enlace_unico: string } | { enlace_unico: string }[] | null;
+          clientes: Destino | Destino[] | null;
         }[] = [];
         if (enviarPush) {
           let consulta = supabase
             .from("suscripciones_push")
-            .select("id, endpoint, p256dh, auth, clientes(enlace_unico)");
+            .select("id, endpoint, p256dh, auth, clientes(enlace_unico, programa, acepta_avisos)");
           if (ids) consulta = consulta.in("cliente_id", ids);
           const { data, error } = await consulta;
           if (error) return json({ error: "No pudimos leer las suscripciones." }, 500);
-          suscripciones = data ?? [];
+          suscripciones = (data ?? []).filter((s) =>
+            puedeRecibir(Array.isArray(s.clientes) ? (s.clientes[0] ?? null) : s.clientes),
+          );
         }
 
         const caducadas: string[] = [];
@@ -126,7 +134,9 @@ export const Route = createFileRoute("/api/enviar-aviso")({
           if (!cfg) {
             wallet = { error: "Wallet no está configurado." };
           } else {
-            let clientesQ = supabase.from("clientes").select("enlace_unico");
+            let clientesQ = supabase
+              .from("clientes")
+              .select("enlace_unico, programa, acepta_avisos");
             if (idsWallet) clientesQ = clientesQ.in("id", idsWallet);
             const { data: clientesWallet, error: errW } = await clientesQ;
             if (errW) {
@@ -134,7 +144,9 @@ export const Route = createFileRoute("/api/enviar-aviso")({
             } else {
               try {
                 const tokenGoogle = await tokenApi(cfg);
-                const enlaces = (clientesWallet ?? []).map((c) => c.enlace_unico);
+                const enlaces = (clientesWallet ?? [])
+                  .filter(puedeRecibir)
+                  .map((c) => c.enlace_unico);
                 let ok = 0;
                 // De a 10 en paralelo para no saturar la API de Google.
                 for (let i = 0; i < enlaces.length; i += 10) {

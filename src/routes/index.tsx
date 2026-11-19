@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { TarjetaFidelidad } from "@/components/TarjetaFidelidad";
+import { TarjetaWallet } from "@/components/TarjetaWallet";
 import { EscanerQR } from "@/components/EscanerQR";
 import { EnviarAviso } from "@/components/EnviarAviso";
 import { esHoyCumpleanos } from "@/lib/fecha";
-import { META, PREFIJO_QR } from "@/lib/marca";
+import { PREFIJO_QR, PROGRAMAS, programaDe, type Programa } from "@/lib/marca";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -42,7 +43,13 @@ type Cliente = {
   instagram: string | null;
   cumpleanos: string | null;
   sellos: number;
+  programa: Programa;
+  email: string | null;
+  acepta_avisos: boolean;
+  premio10Canjeado: boolean;
 };
+
+const metaDe = (c: Cliente) => PROGRAMAS[c.programa].meta;
 
 function Admin() {
   const [session, setSession] = useState<Session | null>(null);
@@ -147,6 +154,7 @@ function Panel() {
     sellos: number;
   } | null>(null);
   const [eliminar, setEliminar] = useState<Cliente | null>(null);
+  const [canje, setCanje] = useState<{ cliente: Cliente; sello: 10 | 12 } | null>(null);
   const [escaneando, setEscaneando] = useState(false);
 
   const eliminarCliente = useMutation({
@@ -172,7 +180,7 @@ function Panel() {
       const { data, error } = await supabase
         .from("clientes")
         .select(
-          "id, nombre_completo, enlace_unico, instagram, cumpleanos, fidelidad(sellos_actuales)",
+          "id, nombre_completo, enlace_unico, instagram, cumpleanos, programa, email, acepta_avisos, fidelidad(sellos_actuales, premio_10_canjeado_en)",
         )
         .order("nombre_completo");
       if (error) throw error;
@@ -186,6 +194,12 @@ function Panel() {
           instagram: c.instagram,
           cumpleanos: c.cumpleanos,
           sellos: (fila as { sellos_actuales: number } | null)?.sellos_actuales ?? 0,
+          programa: programaDe(c.programa),
+          email: c.email,
+          acepta_avisos: c.acepta_avisos,
+          premio10Canjeado: Boolean(
+            (fila as { premio_10_canjeado_en: string | null } | null)?.premio_10_canjeado_en,
+          ),
         };
       });
     },
@@ -228,9 +242,57 @@ function Panel() {
     return clientes.filter(
       (c) =>
         c.nombre_completo.toLowerCase().includes(q) ||
-        (c.instagram ?? "").toLowerCase().replace(/^@/, "").includes(q),
+        (c.instagram ?? "").toLowerCase().replace(/^@/, "").includes(q) ||
+        (c.email ?? "").toLowerCase().includes(q),
     );
   }, [clientes, busqueda]);
+
+  // Correos de quienes aceptaron promociones (para campañas de correo).
+  const correosConPermiso = useMemo(
+    () => clientes.filter((c) => c.email && c.acepta_avisos).map((c) => c.email!),
+    [clientes],
+  );
+
+  // Actualiza el pase de Google Wallet (si el cliente lo guardó); no bloquea el panel.
+  function sincronizarWallet(enlace: string, sumado: boolean) {
+    supabase.auth.getSession().then(({ data }) =>
+      fetch("/api/wallet-sync", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          authorization: `Bearer ${data.session?.access_token ?? ""}`,
+        },
+        body: JSON.stringify({ enlace, sumado }),
+      }).catch(() => {}),
+    );
+  }
+
+  const canjear = useMutation({
+    mutationFn: async ({ clienteId, sello }: { clienteId: string; sello: 10 | 12 }) => {
+      const { data, error } = await supabase.rpc("canjear_premio", {
+        p_cliente_id: clienteId,
+        p_sello: sello,
+      });
+      if (error) throw error;
+      return { clienteId, sello, sellos: data as number };
+    },
+    onMutate: () => setErrorSellos(null),
+    onSuccess: ({ clienteId, sello, sellos }) => {
+      const enlace = clientes.find((c) => c.id === clienteId)?.enlace_unico;
+      if (enlace && sello === 12) sincronizarWallet(enlace, false);
+      qc.setQueryData<Cliente[]>(["clientes"], (old) =>
+        (old ?? []).map((c) =>
+          c.id === clienteId ? { ...c, sellos, premio10Canjeado: sello === 10 } : c,
+        ),
+      );
+      setCanje(null);
+    },
+    onError: (err) => {
+      setErrorSellos(err instanceof Error ? err.message : "No se pudo canjear el premio.");
+      setCanje(null);
+    },
+    onSettled: () => qc.invalidateQueries({ queryKey: ["clientes"] }),
+  });
 
   const crear = useMutation({
     mutationFn: async (nombre: string) => {
@@ -250,26 +312,14 @@ function Panel() {
         p_delta: delta,
       });
       if (error) throw error;
-      return { clienteId, sellos: data as number };
+      return { clienteId, delta, sellos: data as number };
     },
     onMutate: () => {
       setErrorSellos(null);
     },
-    onSuccess: ({ clienteId, sellos }) => {
-      // Actualiza el pase de Google Wallet (si el cliente lo guardó); no bloquea el panel.
+    onSuccess: ({ clienteId, delta, sellos }) => {
       const enlace = clientes.find((c) => c.id === clienteId)?.enlace_unico;
-      if (enlace) {
-        supabase.auth.getSession().then(({ data }) =>
-          fetch("/api/wallet-sync", {
-            method: "POST",
-            headers: {
-              "content-type": "application/json",
-              authorization: `Bearer ${data.session?.access_token ?? ""}`,
-            },
-            body: JSON.stringify({ enlace }),
-          }).catch(() => {}),
-        );
-      }
+      if (enlace) sincronizarWallet(enlace, delta === 1);
       qc.setQueryData<Cliente[]>(["clientes"], (old) =>
         (old ?? []).map((c) => (c.id === clienteId ? { ...c, sellos } : c)),
       );
@@ -297,8 +347,8 @@ function Panel() {
           <div className="min-w-0 flex-1">
             <h1 className="text-lg leading-tight text-primary">Panel del Capitán</h1>
             <p className="text-xs text-muted-foreground">
-              {clientes.length} clientes · {clientes.filter((c) => c.sellos === META).length} con
-              tarjeta completa
+              {clientes.length} clientes · {clientes.filter((c) => c.sellos === metaDe(c)).length}{" "}
+              con tarjeta completa
             </p>
           </div>
           <a
@@ -364,6 +414,21 @@ function Panel() {
           </button>
         </div>
 
+        {correosConPermiso.length > 0 && (
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(correosConPermiso.join(", "));
+              setCopiado("correos");
+              setTimeout(() => setCopiado(null), 1500);
+            }}
+            className="mt-2 text-xs font-semibold text-primary underline"
+          >
+            {copiado === "correos"
+              ? "¡Correos copiados!"
+              : `Copiar correos con permiso de promociones (${correosConPermiso.length})`}
+          </button>
+        )}
+
         {!acumulacionActiva && (
           <p className="mt-3 rounded-xl border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm font-semibold text-destructive">
             ⚠️ Acumulación pausada por falta de stock. No se pueden sumar sellos.
@@ -391,7 +456,10 @@ function Panel() {
 
         <details className="mt-4 rounded-2xl border border-primary/30 bg-card px-4 py-3">
           <summary className="cursor-pointer text-sm font-semibold text-primary">
-            ＋ Nuevo cliente
+            ＋ Nuevo cliente{" "}
+            <span className="font-normal text-muted-foreground">
+              (Concepción, parte con 2 sellos)
+            </span>
           </summary>
           <form
             onSubmit={(e) => {
@@ -424,7 +492,7 @@ function Panel() {
         <input
           value={busqueda}
           onChange={(e) => setBusqueda(e.target.value)}
-          placeholder="Buscar por nombre o @Instagram…"
+          placeholder="Buscar por nombre, @Instagram o correo…"
           className="mt-4 w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary"
         />
 
@@ -441,13 +509,20 @@ function Panel() {
           )}
           {filtrados.map((c) => {
             const sellos = c.sellos;
+            const META = metaDe(c);
             return (
               <div key={c.id} className="rounded-2xl border border-primary/30 bg-card p-4">
                 <div className="flex items-start justify-between gap-2">
                   <div className="min-w-0">
-                    <p className="truncate font-semibold text-primary">{c.nombre_completo}</p>
-                    <p className="text-xs text-muted-foreground">
+                    <p className="truncate font-semibold text-primary">
+                      {c.nombre_completo}{" "}
+                      <span className="ml-1 rounded-full border border-primary/30 px-2 py-0.5 align-middle text-[10px] font-semibold text-muted-foreground">
+                        {PROGRAMAS[c.programa].etiqueta}
+                      </span>
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
                       {c.instagram && `@${c.instagram.replace(/^@/, "")}`}
+                      {c.email}
                       {copiado === c.id && (
                         <span className="font-semibold text-primary"> · ¡Enlace copiado!</span>
                       )}
@@ -488,7 +563,7 @@ function Panel() {
                 </div>
 
                 <div className="mt-1 flex items-center gap-2">
-                  <div className="flex gap-1.5" aria-hidden>
+                  <div className="flex flex-wrap gap-1.5" aria-hidden>
                     {Array.from({ length: META }).map((_, i) => (
                       <span
                         key={i}
@@ -533,6 +608,26 @@ function Panel() {
                     {acumulacionActiva ? "Sumar sello" : "Pausado"}
                   </button>
                 </div>
+
+                {c.programa === "concepcion" && sellos >= 10 && (
+                  <div className="mt-2 flex gap-2">
+                    <button
+                      onClick={() => setCanje({ cliente: c, sello: 10 })}
+                      disabled={c.premio10Canjeado}
+                      className="h-11 flex-1 rounded-full border border-gold bg-gold/20 text-sm font-semibold text-primary transition-transform active:scale-[0.98] disabled:opacity-50"
+                    >
+                      {c.premio10Canjeado ? "50% canjeado ✓" : "Canjear 50%"}
+                    </button>
+                    {sellos >= 12 && (
+                      <button
+                        onClick={() => setCanje({ cliente: c, sello: 12 })}
+                        className="h-11 flex-1 rounded-full border border-gold bg-gold/20 text-sm font-semibold text-primary transition-transform active:scale-[0.98]"
+                      >
+                        Canjear caja
+                      </button>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -549,8 +644,11 @@ function Panel() {
               .replace(new RegExp(`^${PREFIJO_QR}`, "i"), "")
               .replace(/^@/, "")
               .toLowerCase();
+            // QR de la U = Instagram; QR de Concepción = código único de la tarjeta.
             const cliente = clientes.find(
-              (c) => (c.instagram ?? "").replace(/^@/, "").toLowerCase() === usuario,
+              (c) =>
+                c.enlace_unico.toLowerCase() === usuario ||
+                (c.instagram ?? "").replace(/^@/, "").toLowerCase() === usuario,
             );
             if (!cliente) {
               setErrorSellos(`No encontramos ningún cliente con el QR leído (${usuario}).`);
@@ -560,8 +658,10 @@ function Panel() {
               setErrorSellos("Acumulación pausada por falta de stock temporal.");
               return;
             }
-            if (cliente.sellos >= META) {
-              setErrorSellos(`${cliente.nombre_completo} ya completó sus ${META} sellos.`);
+            if (cliente.sellos >= metaDe(cliente)) {
+              setErrorSellos(
+                `${cliente.nombre_completo} ya completó sus ${metaDe(cliente)} sellos.`,
+              );
               return;
             }
             setConfirmar({ cliente, accion: "sumar", sellos: cliente.sellos + 1 });
@@ -574,12 +674,24 @@ function Panel() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
           onClick={() => setVerTarjeta(null)}
         >
-          <div onClick={(e) => e.stopPropagation()}>
-            <TarjetaFidelidad
-              nombre={verTarjeta.nombre_completo}
-              instagram={verTarjeta.instagram}
-              sellos={clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0}
-            />
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="max-h-[90vh] w-full max-w-sm overflow-y-auto"
+          >
+            {verTarjeta.programa === "concepcion" ? (
+              <TarjetaWallet
+                nombre={verTarjeta.nombre_completo}
+                enlace={verTarjeta.enlace_unico}
+                sellos={clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0}
+                premio10Canjeado={verTarjeta.premio10Canjeado}
+              />
+            ) : (
+              <TarjetaFidelidad
+                nombre={verTarjeta.nombre_completo}
+                instagram={verTarjeta.instagram}
+                sellos={clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0}
+              />
+            )}
             <button
               onClick={() => setVerTarjeta(null)}
               className="mx-auto mt-4 block rounded-xl bg-primary px-6 py-2 font-semibold text-primary-foreground"
@@ -607,7 +719,7 @@ function Panel() {
               Pirata: {confirmar.cliente.nombre_completo}
             </p>
             <p className="mt-2 text-center text-sm text-muted-foreground">
-              {confirmar.sellos} de {META} sellos
+              {confirmar.sellos} de {metaDe(confirmar.cliente)} sellos
             </p>
 
             <div className="mt-6 flex gap-3">
@@ -629,6 +741,48 @@ function Panel() {
                 className="flex-1 rounded-xl bg-caramel px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
               >
                 {actualizarSellos.isPending ? "Guardando…" : "Guardar"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {canje && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4"
+          onClick={() => setCanje(null)}
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="w-full max-w-xs rounded-3xl border border-primary/30 bg-card p-6 shadow-card"
+          >
+            <p className="text-center text-lg font-semibold text-primary">¿Canjear premio?</p>
+            <p className="mt-2 text-center text-sm text-muted-foreground">
+              {PROGRAMAS.concepcion.premios[canje.sello]} para
+            </p>
+            <p className="text-center font-bold text-primary">
+              Pirata: {canje.cliente.nombre_completo}
+            </p>
+            {canje.sello === 12 && (
+              <p className="mt-2 text-center text-xs text-muted-foreground">
+                La tarjeta vuelve a 0 sellos.
+                {!canje.cliente.premio10Canjeado && " Ojo: aún no canjea su 50% del sello 10."}
+              </p>
+            )}
+
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setCanje(null)}
+                className="flex-1 rounded-xl border-2 border-primary/50 px-4 py-2.5 font-semibold text-primary"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={() => canjear.mutate({ clienteId: canje.cliente.id, sello: canje.sello })}
+                disabled={canjear.isPending}
+                className="flex-1 rounded-xl bg-caramel px-4 py-2.5 font-semibold text-primary-foreground disabled:opacity-60"
+              >
+                {canjear.isPending ? "Guardando…" : "Canjear"}
               </button>
             </div>
           </div>

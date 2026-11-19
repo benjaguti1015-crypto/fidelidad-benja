@@ -9,7 +9,7 @@ export const Route = createFileRoute("/mi-tarjeta")({
       {
         name: "description",
         content:
-          "Recupera tu tarjeta de fidelidad pirata con tu usuario de Instagram y revisa tus sellos.",
+          "Recupera tu tarjeta de fidelidad pirata con tu correo o tu usuario de Instagram y revisa tus sellos.",
       },
       { property: "og:title", content: "Ver mi tarjeta | Dulces del Rey Pirata" },
       {
@@ -57,15 +57,18 @@ function MiTarjeta() {
     setError(null);
     setResultados(null);
 
-    if (valor.trim().replace(/^@/, "").length < 2) {
-      setError("Escribe tu usuario de Instagram.");
+    const texto = valor.trim();
+    if (texto.replace(/^@/, "").length < 2) {
+      setError("Escribe tu correo o tu usuario de Instagram.");
       return;
     }
 
+    // Con "algo@algo.algo" es un correo (Concepción); si no, Instagram (clientes de la U).
+    const esCorreo = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(texto);
     setBuscando(true);
-    const { data, error: err } = await supabase.rpc("buscar_tarjeta", {
-      p_valor: valor.trim().replace(/^@/, ""),
-    });
+    const { data, error: err } = esCorreo
+      ? await supabase.rpc("buscar_tarjeta_correo", { p_email: texto.toLowerCase() })
+      : await supabase.rpc("buscar_tarjeta", { p_valor: texto.replace(/^@/, "") });
     setBuscando(false);
 
     if (err) {
@@ -74,7 +77,11 @@ function MiTarjeta() {
     }
     const filas = (data ?? []) as Resultado[];
     if (filas.length === 0) {
-      setError("No encontramos ninguna tarjeta con ese Instagram. ¿Ya te registraste?");
+      setError(
+        esCorreo
+          ? "No encontramos ninguna tarjeta con ese correo. ¿Ya te registraste?"
+          : "No encontramos ninguna tarjeta con ese Instagram. ¿Ya te registraste?",
+      );
       return;
     }
     if (filas.length === 1) {
@@ -94,7 +101,7 @@ function MiTarjeta() {
         />
         <h1 className="mt-3 text-center text-xl leading-tight text-primary">Ver mi tarjeta</h1>
         <p className="mt-1 text-center text-xs uppercase tracking-[0.25em] text-muted-foreground">
-          Con tu usuario de Instagram
+          Con tu correo o Instagram
         </p>
 
         {guardada && (
@@ -109,14 +116,16 @@ function MiTarjeta() {
 
         <form onSubmit={buscar}>
           <label className="mt-5 block text-sm font-semibold text-primary" htmlFor="valor">
-            Usuario de Instagram
+            Correo o usuario de Instagram
           </label>
           <input
             id="valor"
             value={valor}
-            maxLength={50}
+            maxLength={120}
+            autoCapitalize="none"
+            autoCorrect="off"
             onChange={(e) => setValor(e.target.value)}
-            placeholder="@tuusuario"
+            placeholder="tucorreo@ejemplo.com o @tuusuario"
             className="mt-1 w-full rounded-xl border-2 border-primary/40 bg-cream px-3 py-2 text-primary outline-none focus:border-primary"
           />
 

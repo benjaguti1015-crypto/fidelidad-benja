@@ -11,34 +11,52 @@ export type Database = {
       clientes: {
         Row: {
           acepta_avisos: boolean;
+          apellido: string | null;
+          avisos_aceptados_en: string | null;
           created_at: string;
           cumpleanos: string | null;
           enlace_unico: string;
           id: string;
           instagram: string | null;
           nombre_completo: string;
+          programa: string;
+          email: string | null;
           terminos_aceptados_en: string | null;
         };
         Insert: {
           acepta_avisos?: boolean;
+          apellido?: string | null;
+          avisos_aceptados_en?: string | null;
           created_at?: string;
           cumpleanos?: string | null;
           enlace_unico?: string;
           id?: string;
           instagram?: string | null;
           nombre_completo: string;
+          programa?: string;
+          email?: string | null;
           terminos_aceptados_en?: string | null;
         };
         Update: {
           acepta_avisos?: boolean;
+          apellido?: string | null;
+          avisos_aceptados_en?: string | null;
           created_at?: string;
           cumpleanos?: string | null;
           enlace_unico?: string;
           id?: string;
           instagram?: string | null;
           nombre_completo?: string;
+          programa?: string;
+          email?: string | null;
           terminos_aceptados_en?: string | null;
         };
+        Relationships: [];
+      };
+      canjes: {
+        Row: { cliente_id: string; created_at: string; id: string; sello: number };
+        Insert: { cliente_id: string; created_at?: string; id?: string; sello: number };
+        Update: { cliente_id?: string; created_at?: string; id?: string; sello?: number };
         Relationships: [];
       };
       configuracion: {
@@ -66,6 +84,7 @@ export type Database = {
         Row: {
           cliente_id: string;
           id: string;
+          premio_10_canjeado_en: string | null;
           sellos_actuales: number;
           ultimo_sello_en: string | null;
           updated_at: string;
@@ -73,6 +92,7 @@ export type Database = {
         Insert: {
           cliente_id: string;
           id?: string;
+          premio_10_canjeado_en?: string | null;
           sellos_actuales?: number;
           ultimo_sello_en?: string | null;
           updated_at?: string;
@@ -80,6 +100,7 @@ export type Database = {
         Update: {
           cliente_id?: string;
           id?: string;
+          premio_10_canjeado_en?: string | null;
           sellos_actuales?: number;
           ultimo_sello_en?: string | null;
           updated_at?: string;
@@ -134,6 +155,39 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      aceptar_promociones: {
+        Args: { p_enlace: string };
+        Returns: boolean;
+      };
+      buscar_tarjeta_correo: {
+        Args: { p_email: string };
+        Returns: { enlace_unico: string; nombre_completo: string }[];
+      };
+      canjear_premio: {
+        Args: { p_cliente_id: string; p_sello: number };
+        Returns: number;
+      };
+      registro_concepcion: {
+        Args: {
+          p_acepta_promos: boolean;
+          p_apellido: string;
+          p_cumpleanos?: string | null;
+          p_email: string;
+          p_nombre: string;
+        };
+        Returns: string;
+      };
+      tarjeta_detalle: {
+        Args: { p_enlace: string };
+        Returns: {
+          cumpleanos: string | null;
+          instagram: string | null;
+          nombre_completo: string;
+          premio_10_canjeado: boolean;
+          programa: string;
+          sellos_actuales: number;
+        }[];
+      };
       actualizar_cumpleanos_publico: {
         Args: { p_cumpleanos: string; p_enlace: string };
         Returns: boolean;
