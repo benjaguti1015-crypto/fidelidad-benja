@@ -682,7 +682,6 @@ function Panel() {
             {verTarjeta.programa === "concepcion" ? (
               <TarjetaWallet
                 nombre={verTarjeta.nombre_completo}
-                enlace={verTarjeta.enlace_unico}
                 sellos={clientes.find((c) => c.id === verTarjeta.id)?.sellos ?? 0}
                 premio10Canjeado={verTarjeta.premio10Canjeado}
               />

@@ -222,7 +222,6 @@ function VistaCliente() {
             <TarjetaWallet
               nombre={data.nombre_completo}
               sellos={data.sellos_actuales}
-              enlace={enlace}
               premio10Canjeado={data.premio_10_canjeado ?? false}
             />
           ) : (
@@ -245,19 +244,20 @@ function VistaCliente() {
             </button>
           )}
 
-          <ActivarAvisos
-            enlace={enlace}
-            ios={entorno.ios}
-            instalada={instalada}
-            concepcion={programa === "concepcion"}
-          />
+          {/* Concepción: tarjeta limpia (términos y avisos ya se aceptaron al registrarse). */}
+          {programa === "universidad" && (
+            <ActivarAvisos enlace={enlace} ios={entorno.ios} instalada={instalada} />
+          )}
           <BotonWallet enlace={enlace} />
 
-          <Terminos className="w-full max-w-sm" programa={programa} />
-
-          <a href="/privacidad" className="text-xs text-muted-foreground underline">
-            Política de privacidad
-          </a>
+          {programa === "universidad" && (
+            <>
+              <Terminos className="w-full max-w-sm" />
+              <a href="/privacidad" className="text-xs text-muted-foreground underline">
+                Política de privacidad
+              </a>
+            </>
+          )}
         </div>
       )}
 
