@@ -145,6 +145,9 @@ function Login() {
 function Panel() {
   const qc = useQueryClient();
   const [busqueda, setBusqueda] = useState("");
+  const [filtroPrograma, setFiltroPrograma] = useState<"todos" | Programa>("todos");
+  // "todos", un número exacto de sellos ("0"…"12") o "premio" (listos para canjear).
+  const [filtroSellos, setFiltroSellos] = useState("todos");
   const [nuevo, setNuevo] = useState("");
   const [verTarjeta, setVerTarjeta] = useState<Cliente | null>(null);
   const [errorSellos, setErrorSellos] = useState<string | null>(null);
@@ -239,14 +242,29 @@ function Panel() {
 
   const filtrados = useMemo(() => {
     const q = busqueda.trim().toLowerCase().replace(/^@/, "");
-    if (!q) return clientes;
-    return clientes.filter(
-      (c) =>
+    return clientes.filter((c) => {
+      if (filtroPrograma !== "todos" && c.programa !== filtroPrograma) return false;
+      if (filtroSellos === "premio") {
+        // Tiene un premio ganado sin canjear (en la U: llegó a un sello con premio).
+        const listo =
+          c.programa === "concepcion"
+            ? (c.sellos >= 10 && !c.premio10Canjeado) || c.sellos >= 12
+            : c.sellos in PROGRAMAS.universidad.premios;
+        if (!listo) return false;
+      } else if (filtroSellos !== "todos" && c.sellos !== Number(filtroSellos)) {
+        return false;
+      }
+      if (!q) return true;
+      return (
         c.nombre_completo.toLowerCase().includes(q) ||
         (c.instagram ?? "").toLowerCase().replace(/^@/, "").includes(q) ||
-        (c.email ?? "").toLowerCase().includes(q),
-    );
-  }, [clientes, busqueda]);
+        (c.email ?? "").toLowerCase().includes(q)
+      );
+    });
+  }, [clientes, busqueda, filtroPrograma, filtroSellos]);
+
+  // Tope de sellos para la lista del filtro: 8 si se ve solo la U, 12 en otro caso.
+  const maxSellosFiltro = filtroPrograma === "universidad" ? PROGRAMAS.universidad.meta : 12;
 
   // Correos de quienes aceptaron promociones (para campañas de correo).
   const correosConPermiso = useMemo(
@@ -497,6 +515,65 @@ function Panel() {
           className="mt-4 w-full rounded-xl border border-primary/30 bg-cream px-3 py-2.5 text-base text-primary outline-none focus:border-primary"
         />
 
+        <div className="mt-3 flex flex-wrap items-center gap-1.5">
+          {(
+            [
+              ["todos", "Todos"],
+              ["concepcion", "Concepción"],
+              ["universidad", "U"],
+            ] as const
+          ).map(([valor, texto]) => (
+            <button
+              key={valor}
+              type="button"
+              aria-pressed={filtroPrograma === valor}
+              onClick={() => {
+                setFiltroPrograma(valor);
+                // Si se pasa a la U con un filtro de 9–12 sellos, se limpia.
+                if (valor === "universidad" && Number(filtroSellos) > PROGRAMAS.universidad.meta)
+                  setFiltroSellos("todos");
+              }}
+              className={`h-9 rounded-full border px-3 text-xs font-semibold transition-transform active:scale-[0.97] ${
+                filtroPrograma === valor
+                  ? "border-primary bg-primary text-primary-foreground"
+                  : "border-primary/30 bg-cream text-primary"
+              }`}
+            >
+              {texto}
+            </button>
+          ))}
+          <select
+            aria-label="Filtrar por cantidad de sellos"
+            value={filtroSellos}
+            onChange={(e) => setFiltroSellos(e.target.value)}
+            className="ml-auto h-9 rounded-full border border-primary/30 bg-cream px-3 text-xs font-semibold text-primary outline-none focus:border-primary"
+          >
+            <option value="todos">Todos los sellos</option>
+            <option value="premio">⭐ Premio por canjear</option>
+            {Array.from({ length: maxSellosFiltro + 1 }, (_, n) => (
+              <option key={n} value={String(n)}>
+                {n} {n === 1 ? "sello" : "sellos"}
+              </option>
+            ))}
+          </select>
+        </div>
+        {(filtroPrograma !== "todos" || filtroSellos !== "todos" || busqueda.trim()) && (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Mostrando {filtrados.length} de {clientes.length} clientes ·{" "}
+            <button
+              type="button"
+              onClick={() => {
+                setFiltroPrograma("todos");
+                setFiltroSellos("todos");
+                setBusqueda("");
+              }}
+              className="font-semibold text-primary underline"
+            >
+              Quitar filtros
+            </button>
+          </p>
+        )}
+
         {errorSellos && (
           <p className="mt-4 rounded-xl border border-destructive/50 bg-destructive/10 px-3 py-2 text-sm text-destructive">
             {errorSellos}
@@ -506,7 +583,9 @@ function Panel() {
         <section className="mt-4 space-y-3 pb-10">
           {isLoading && <p className="text-sm text-muted-foreground">Cargando clientes…</p>}
           {!isLoading && filtrados.length === 0 && (
-            <p className="text-sm text-muted-foreground">Sin clientes todavía.</p>
+            <p className="text-sm text-muted-foreground">
+              {clientes.length ? "Nadie coincide con los filtros." : "Sin clientes todavía."}
+            </p>
           )}
           {filtrados.map((c) => {
             const sellos = c.sellos;
